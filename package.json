@@ -10,16 +10,63 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:build-runner.helloWorld"
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "build-runner.helloWorld",
-				"title": "Hello World"
+				"category": "build_runner",
+				"command": "build_runner.build",
+				"title": "build_runner build"
+			},
+			{
+				"category": "build_runner",
+				"command": "build_runner.watch",
+				"title": "build_runner watch"
 			}
-		]
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "build_runner.watch",
+					"when": "false"
+				},
+				{
+					"command": "build_runner.build",
+					"when": "false"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "build_runner.watch",
+					"when": "resourceFilename == pubspec.yaml && dart-code:anyFlutterProjectLoaded"
+				},
+				{
+					"command": "build_runner.build",
+					"when": "resourceFilename == pubspec.yaml && dart-code:anyFlutterProjectLoaded"
+				}
+			],
+			"view/title": [
+				{
+					"command": "build_runner.build.all",
+					"when": "view == build_runner",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "build_runner.watch.refresh",
+					"when": "view == build_runner",
+					"group": "inline"
+				},
+				{
+					"command": "build_runner.watch.quit",
+					"when": "view == build_runner",
+					"group": "inline"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -41,5 +88,8 @@
 		"mocha": "^7.1.2",
 		"typescript": "^3.8.3",
 		"vscode-test": "^1.3.0"
+	},
+	"dependencies": {
+		"yaml": "^1.10.0"
 	}
 }
