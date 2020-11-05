@@ -3,10 +3,11 @@
 	"displayName": "Dart build_runner",
 	"description": "Dart build_runner tools in vsCode.",
 	"version": "0.0.1",
-	"publisher": "awagege",
+	"publisher": "kaiqun",
 	"engines": {
 		"vscode": "^1.46.0"
 	},
+	"icon": "icon.png",
 	"repository": "https://github.com/awagege/vscode-build-runner",
 	"activationEvents": [
 		"onLanguage:dart",
