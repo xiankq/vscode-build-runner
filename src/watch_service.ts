@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { PubspecModel } from './interface';
+import { PubspecObject } from './interface';
 import { readYaml } from './util';
 import * as path from 'path';
 import * as child_process from "child_process";
@@ -18,13 +18,41 @@ export default class WatchService {
      * @param context 
      */
     public registerCommand(context: vscode.ExtensionContext) {
+        vscode.window.registerTreeDataProvider('build_runner_view', BuildRunnerTreeProvider.instance);
         context.subscriptions.push(
             vscode.commands.registerCommand(
                 'build_runner.watch',
-                (uri: vscode.Uri) => this.command(uri, context)
-            )
+                (uri) => this.watchCommand(uri)
+            ),
+        );
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                'build_runner.watch.refresh',
+                (args: BuildRunnerTreeItem) => this.refreshWatchCommand(args)
+            ),
+        );
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                'build_runner.watch.quit',
+                (args: BuildRunnerTreeItem) => this.quitWatchCommand(args.cwd)
+            ),
+        );
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                'build_runner.build',
+                (uri) => this.buildCommand(uri)
+            ),
+        );
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                'build_runner.build.all',
+                (uri) => this.buildallCommand(uri)
+            ),
         );
     }
+    /**
+     * 输出通道
+     */
     private _outputChannel: vscode.OutputChannel | undefined;
     /**
      * 输出通道
@@ -34,25 +62,12 @@ export default class WatchService {
         return this._outputChannel;
     };
 
+
     /**
-    * 停止单个Package的build_runner watch
+    * 运行build_runner watch
     */
-    private quitWatchCommand(cwd: string) {
-        const item = BuildRunnerTreeProvider.instance?.items[cwd];
-        if (item) {
-            const spawn = BuildRunnerTreeProvider.instance?.items[cwd]?.spawn;
-            spawn?.kill();
-            delete BuildRunnerTreeProvider.instance.items[cwd];
-            BuildRunnerTreeProvider.instance.refresh();
-        }
-    }
-    /**
-     * 命令回调
-     * @param uri 
-     * @param context 
-     */
-    private async command(uri: vscode.Uri, context: vscode.ExtensionContext) {
-        const pubspec = <PubspecModel>await readYaml(uri);
+    private async watchCommand(uri: vscode.Uri) {
+        const pubspec = <PubspecObject>await readYaml(uri);
         //解析yaml错误
         if (!pubspec) {
             this.outputChannel.appendLine(`${uri.fsPath} Invalid format on ${uri.fsPath}`);
@@ -64,8 +79,8 @@ export default class WatchService {
         //不存在 build_runner
         if (!include) {
             this.outputChannel.clear();
-            const packageMame = pubspec.name ?? 'unknown';
-            this.outputChannel.appendLine(`[${packageMame}] No build_runner were found in the package.`);
+            const packageName = pubspec.name ?? 'unknown';
+            this.outputChannel.appendLine(`[${packageName}] No build_runner were found in the package.`);
             this.outputChannel.show();
             return;
         }
@@ -73,6 +88,185 @@ export default class WatchService {
         const packageName = pubspec?.name ?? 'unknown';
         //运行命令的路径
         const cwd = path.join(uri.fsPath, '../');
+
+        this.quitWatchCommand(cwd);
+        const spawn = child_process.spawn('flutter packages pub run build_runner watch --delete-conflicting-outputs', [], {
+            windowsVerbatimArguments: true,
+            cwd: cwd,
+            shell: true
+        });
+        BuildRunnerTreeProvider.instance.items[cwd] = new BuildRunnerTreeItem(packageName, cwd, spawn, vscode.TreeItemCollapsibleState.None);
+        const item = BuildRunnerTreeProvider.instance.items[cwd];
+        const sp = item.spawn;
+
+        sp.stderr.on('data', (data) => {
+            this.outputChannel.show();
+            this.outputChannel.append(`[${packageName}] Error: ${data}\n`);
+        });
+        //储存一个方法  用来控制loading
+        let report: ((increment: number) => void) | undefined;
+        sp.stdout.on('data', async (data) => {
+            if (!report) {
+                vscode.window.withProgress<(increment: number) => void>({
+                    location: vscode.ProgressLocation.Window,
+                    title: `[${packageName}]  build_runner watch`,
+                    cancellable: true
+                }, (progress) => {
+                    return new Promise((resolve, reject) => {
+                        report = (increment: number) => {
+                            progress.report({ message: undefined, increment: increment });
+                            report = undefined;
+                            resolve();
+                        };
+                    });
+                });
+            }
+            if (data.indexOf('Succeeded after') !== -1) {
+                report?.(100);
+            }
+        });
+        sp.on('exit', (code) => {
+            report?.(100);
+            this.quitWatchCommand(cwd);
+        });
+        BuildRunnerTreeProvider.instance.refresh();
+    }
+
+
+    /**
+     * 停止build_runner watch
+     * @param cwd 
+     */
+    private quitWatchCommand(cwd: string) {
+        const item = BuildRunnerTreeProvider.instance?.items[cwd];
+        if (item) {
+            const spawn = BuildRunnerTreeProvider.instance?.items[cwd]?.spawn;
+            spawn?.kill();
+            delete BuildRunnerTreeProvider.instance.items[cwd];
+            BuildRunnerTreeProvider.instance.refresh();
+        }
+    }
+    /**
+    * 刷新build_runner watch
+    */
+    private async refreshWatchCommand(args: BuildRunnerTreeItem) {
+        const instance = BuildRunnerTreeProvider.instance;
+        const cwd = args.cwd;
+        this.quitWatchCommand(cwd);
+        delete instance.items[cwd];
+        BuildRunnerTreeProvider.instance.refresh();
+        const filePath = path.join(`${cwd}`, 'pubspec.yaml');
+        const uri = vscode.Uri.file(filePath);
+        await new Promise<void>((resolve, reject) => {
+            setTimeout(() => {
+                resolve();
+            }, 1000);
+        });
+        this.watchCommand(uri);
+    }
+
+
+    /**
+    * 运行build_runner build
+    */
+    private async buildCommand(uri: vscode.Uri) {
+        //读取pubspec.yaml并转成obj
+        const pubspec = <PubspecObject>await readYaml(uri);
+
+        const noBuildRunner =
+            !Object.keys(pubspec?.dependencies ?? {})?.includes('build_runner')
+            && !Object.keys(pubspec?.dev_dependencies ?? {})?.includes('build_runner');
+        if (noBuildRunner) {
+            this.outputChannel.clear();
+            const packageName = pubspec.name ?? 'unknown';
+            this.outputChannel.appendLine(`[${packageName}] No build_runner were found in the package.`);
+            this.outputChannel.show();
+            return;
+        }
+        this.runBuildRunnerBuild(uri);
+    }
+
+
+    /**
+    * 运行全部build_runner build
+    */
+    private async buildallCommand(uri: vscode.Uri) {
+        const res = await vscode.window.showInformationMessage('为工作区内的所有pubspec.yaml运行build_runner build，此过程可能会持续较长时间，是否继续？', '是', '否');
+        if (res !== '是') {
+            return;
+        }
+        //扫描工作区内下所有pub.yaml文件
+        const uris = await vscode.workspace.findFiles('**/pubspec.yaml');
+        this.outputChannel.clear();
+        if (uris.length === 0) {
+            this.outputChannel.appendLine('No pubspec.yaml were found in the workspace.');
+            this.outputChannel.show();
+            return;
+        }
+        for (const iterator of uris) {
+            const msg = await this.runBuildRunnerBuild(iterator);
+            if (msg === 'cancel') {
+                break;
+            }
+        }
+    }
+    /**
+         * 填入pubspec.yaml路径，运行 build_runner build
+         * @param uri pubspec.yaml URI
+         * @param onCancel 点击取消时触发
+         */
+    private async runBuildRunnerBuild(uri: vscode.Uri): Promise<'cancel' | 'error' | 'exit' | undefined> {
+        //读取pubspec.yaml并转成obj
+        const pubspec = <PubspecObject>await readYaml(uri);
+        if (!pubspec) {
+            this.outputChannel.appendLine(`${uri.fsPath} Invalid format on ${uri.path}`);
+            return;
+        }
+
+        const noBuildRunner =
+            !Object.keys(pubspec?.dependencies ?? {})?.includes('build_runner')
+            && !Object.keys(pubspec?.dev_dependencies ?? {})?.includes('build_runner');
+        if (noBuildRunner) { return; }
+
+        //包名
+        const packageName = pubspec.name ?? 'unknown';
+        //运行命令的路径
+        const cwd = path.join(uri.fsPath, '../');
+
+        return await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: `[${packageName}] run build_runner build`,
+            cancellable: true
+        }, (progress, token) => {
+            return new Promise((resolve, reject) => {
+                this.outputChannel.append(`[${packageName}] run build_runner build...\n`);
+                const spawn = child_process.spawn('flutter packages pub run build_runner build --delete-conflicting-outputs', [], {
+                    windowsVerbatimArguments: true,
+                    cwd: cwd,
+                    shell: true
+                });
+                token.onCancellationRequested(() => {
+                    this.outputChannel.append(`[${packageName}] emit cancel.\n`);
+                    spawn.emit('close');
+                    spawn.kill();
+                    resolve('cancel');
+                });
+                spawn.stdout.on('data', (data) => {
+                    progress.report({ message: `${data}` });
+                });
+                spawn.stderr.on('data', (data) => {
+                    progress.report({ message: undefined, increment: 100 });
+                    this.outputChannel.append(`[${packageName}] Error: ${data}\n`);
+                    this.outputChannel.show();
+                });
+                spawn.on('exit', (code) => {
+                    spawn.kill();
+                    this.outputChannel.append(`[${packageName}] exit code ${code}\n\n\n\n`);
+                    progress.report({ message: undefined, increment: 100 });
+                    resolve('exit');
+                });
+            });
+        });
     }
 }
 

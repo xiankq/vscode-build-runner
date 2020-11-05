@@ -6,24 +6,40 @@
 	"engines": {
 		"vscode": "^1.46.0"
 	},
-	"categories": [
-		"Other"
-	],
 	"activationEvents": [
-		"*"
+		"onLanguage:dart",
+		"workspaceContains:**/pubspec.yaml"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"category": "build_runner",
+				"category": "build-runner",
+				"command": "build_runner.watch",
+				"title": "build_runner watch"
+			},
+			{
+				"category": "build-runner",
+				"command": "build_runner.watch.refresh",
+				"title": "build_runner watch refresh",
+				"icon": "$(debug-restart)"
+			},
+			{
+				"category": "build-runner",
+				"command": "build_runner.watch.quit",
+				"title": "build_runner watch quit",
+				"icon": "$(debug-stop)"
+			},
+			{
+				"category": "build-runner",
 				"command": "build_runner.build",
 				"title": "build_runner build"
 			},
 			{
-				"category": "build_runner",
-				"command": "build_runner.watch",
-				"title": "build_runner watch"
+				"category": "build-runner",
+				"command": "build_runner.build.all",
+				"title": "build_runner build all",
+				"icon": "$(play)"
 			}
 		],
 		"menus": {
@@ -40,11 +56,11 @@
 			"explorer/context": [
 				{
 					"command": "build_runner.watch",
-					"when": "resourceFilename == pubspec.yaml && dart-code:anyFlutterProjectLoaded"
+					"when": "resourceFilename == pubspec.yaml && dart-code:dartProjectLoaded"
 				},
 				{
 					"command": "build_runner.build",
-					"when": "resourceFilename == pubspec.yaml && dart-code:anyFlutterProjectLoaded"
+					"when": "resourceFilename == pubspec.yaml && dart-code:dartProjectLoaded"
 				}
 			],
 			"view/title": [
@@ -64,6 +80,15 @@
 					"command": "build_runner.watch.quit",
 					"when": "view == build_runner",
 					"group": "inline"
+				}
+			]
+		},
+		"views": {
+			"explorer": [
+				{
+					"id": "build_runner_view",
+					"name": "BUILD RUNNER",
+					"when": "dart-code:dartProjectLoaded"
 				}
 			]
 		}
