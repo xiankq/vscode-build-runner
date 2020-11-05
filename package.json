@@ -1,11 +1,13 @@
 {
 	"name": "build-runner",
-	"displayName": "build_runner",
-	"description": "desc",
+	"displayName": "Dart build_runner",
+	"description": "Dart build_runner tools in vsCode.",
 	"version": "0.0.1",
+	"publisher": "awagege",
 	"engines": {
 		"vscode": "^1.46.0"
 	},
+	"repository": "https://github.com/awagege/vscode-build-runner",
 	"activationEvents": [
 		"onLanguage:dart",
 		"workspaceContains:**/pubspec.yaml"
@@ -66,19 +68,19 @@
 			"view/title": [
 				{
 					"command": "build_runner.build.all",
-					"when": "view == build_runner",
+					"when": "view == build_runner_view",
 					"group": "navigation"
 				}
 			],
 			"view/item/context": [
 				{
 					"command": "build_runner.watch.refresh",
-					"when": "view == build_runner",
+					"when": "view == build_runner_view",
 					"group": "inline"
 				},
 				{
 					"command": "build_runner.watch.quit",
-					"when": "view == build_runner",
+					"when": "view == build_runner_view",
 					"group": "inline"
 				}
 			]
