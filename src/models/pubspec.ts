@@ -21,3 +21,10 @@ export interface PubspecTreePubspecModel {
   uri: vscode.Uri;
   name: string | null;
 }
+
+export interface TreeModel {
+  name: string;
+  type: "workspace" | "pubspec";
+  uri: vscode.Uri;
+  chilren?: TreeModel[];
+}

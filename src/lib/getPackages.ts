@@ -4,6 +4,7 @@ import {
   PubspecModel,
   PubspecTreeModel,
   PubspecTreePubspecModel,
+  TreeModel,
 } from "../models/pubspec";
 
 const readYaml = async (uri: vscode.Uri) => {
@@ -18,7 +19,7 @@ const readYaml = async (uri: vscode.Uri) => {
   return json;
 };
 
-export const getAllPubspec = async (): Promise<PubspecTreeModel[]> => {
+export const getAllPubspec = async (): Promise<TreeModel[]> => {
   //工作区列表
   const workspaces = vscode.workspace.workspaceFolders ?? [];
 
@@ -46,27 +47,40 @@ export const getAllPubspec = async (): Promise<PubspecTreeModel[]> => {
       );
     });
   });
-
-  //转换成PubspecTreeModel[]
-  const ret: PubspecTreeModel[] = pubspecObjsList.map((e, i) => {
-    const pubspec: PubspecTreePubspecModel[] = e.map(($e, $i) => {
-      return {
-        name: $e!.name,
-        uri: pubspecFilesList[i][$i],
-      };
-    });
-
-    //根据字母排序
-    const sort = (s: PubspecTreePubspecModel, t: PubspecTreePubspecModel) => {
-      const a = s.name?.toLowerCase() ?? "";
-      const b = t.name?.toLowerCase() ?? "";
-      return a < b ? -1 : a > b ? 1 : 0;
-    };
-    return <PubspecTreeModel>{
-      workspace: workspaces[i],
-      pubspec: pubspec.sort(sort),
+  const ret: TreeModel[] = pubspecObjsList.map((e, i) => {
+    return {
+      name: workspaces[i].name,
+      type: "workspace",
+      uri: workspaces[i].uri,
+      chilren: e.map(($e, $i) => {
+        return {
+          name: $e!.name,
+          type: "pubspec",
+          uri: pubspecFilesList[i][$i],
+        };
+      }),
     };
   });
-  console.log(ret);
+  // //转换成 TreeModel[]
+  // const ret: TreeModel[] = pubspecObjsList.map((e, i) => {
+  //   const pubspec: TreeModel[] = e.map(($e, $i) => {
+  //     return {
+  //       name: $e!.name,
+  //       uri: pubspecFilesList[i][$i],
+  //     };
+  //   });
+
+  //   //根据字母排序
+  //   const sort = (s: PubspecTreePubspecModel, t: PubspecTreePubspecModel) => {
+  //     const a = s.name?.toLowerCase() ?? "";
+  //     const b = t.name?.toLowerCase() ?? "";
+  //     return a < b ? -1 : a > b ? 1 : 0;
+  //   };
+  //   return <PubspecTreeModel>{
+  //     workspace: workspaces[i],
+  //     pubspec: pubspec.sort(sort),
+  //   };
+  // });
+  // console.log(ret);
   return ret;
 };
