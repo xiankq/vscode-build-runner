@@ -47,6 +47,7 @@ export const getAllPubspec = async (): Promise<TreeModel[]> => {
       );
     });
   });
+  //转换成 TreeModel[]
   const ret: TreeModel[] = pubspecObjsList.map((e, i) => {
     return {
       name: workspaces[i].name,
@@ -61,26 +62,5 @@ export const getAllPubspec = async (): Promise<TreeModel[]> => {
       }),
     };
   });
-  // //转换成 TreeModel[]
-  // const ret: TreeModel[] = pubspecObjsList.map((e, i) => {
-  //   const pubspec: TreeModel[] = e.map(($e, $i) => {
-  //     return {
-  //       name: $e!.name,
-  //       uri: pubspecFilesList[i][$i],
-  //     };
-  //   });
-
-  //   //根据字母排序
-  //   const sort = (s: PubspecTreePubspecModel, t: PubspecTreePubspecModel) => {
-  //     const a = s.name?.toLowerCase() ?? "";
-  //     const b = t.name?.toLowerCase() ?? "";
-  //     return a < b ? -1 : a > b ? 1 : 0;
-  //   };
-  //   return <PubspecTreeModel>{
-  //     workspace: workspaces[i],
-  //     pubspec: pubspec.sort(sort),
-  //   };
-  // });
-  // console.log(ret);
   return ret;
 };
