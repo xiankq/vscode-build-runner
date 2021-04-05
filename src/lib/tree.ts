@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
 import { TreeModel } from "../models/pubspec";
 
-type EventEmitterTreeItem = BuildRunnerTreeItem | undefined | void;
+type EventEmitterTreeItem = NestTreeItem | undefined | void;
 
 export class BuildRunnerTreeProvider
-  implements vscode.TreeDataProvider<BuildRunnerTreeItem> {
+  implements vscode.TreeDataProvider<NestTreeItem> {
   private constructor() { }
 
   private static _instance: BuildRunnerTreeProvider;
@@ -20,30 +20,37 @@ export class BuildRunnerTreeProvider
 
   readonly onDidChangeTreeData = this.eventEmitter.event;
 
-  readonly getTreeItem = (element: BuildRunnerTreeItem) => element;
+  readonly getTreeItem = (element: NestTreeItem) => element;
 
-  items: BuildRunnerTreeItem[] = [];
+  items: NestTreeItem[] = [];
 
-  readonly getChildren = (element: BuildRunnerTreeItem) => {
+  readonly getChildren = (element: NestTreeItem) => {
     if (!element) {
       return this.items;
     } else {
-      return element.data.chilren?.map((e) => new BuildRunnerTreeItem(e));
+      return element.data.chilren?.map((e) => new NestTreeItem(e));
     }
   };
 }
 
-export class BuildRunnerTreeItem extends vscode.TreeItem {
-  constructor(public data: TreeModel) {
+export class NestTreeItem extends vscode.TreeItem {
+  constructor(
+    public readonly title: string,
+    public readonly type: 'workspace' | 'pubspec',
+    public readonly resourceUri: vscode.Uri,
+    public readonly children: NestTreeItem[],
 
+  ) {
     super(
-      data.name,
-      data.type === "workspace"
-        ? vscode.TreeItemCollapsibleState.Collapsed
-        : undefined
+      title,
+      type === "workspace" ? vscode.TreeItemCollapsibleState.Collapsed : undefined
     );
   }
-  readonly resourceUri = this.data.uri;
-  readonly contextValue = this.data.type;
-  readonly tooltip = `${this.data.uri.path}`;
+  readonly command = {
+    title: 'Open file',
+    command: 'build_runner.openFile',
+    arguments: [this.resourceUri]
+  };
+
+  readonly tooltip = `${this.resourceUri.path}`;
 }

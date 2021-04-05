@@ -33,6 +33,11 @@
         "command": "build_runner.quit",
         "title": "build_runner watch quit",
         "icon": "$(debug-stop)"
+      },
+      {
+        "category": "build-runner",
+        "command": "build_runner.openFile",
+        "title": "openFile"
       }
     ],
     "menus": {
@@ -41,12 +46,16 @@
           "command": "build_runner.watch",
           "when": "false"
         },
-        {
+        { 
           "command": "build_runner.build",
           "when": "false"
         },
         {
           "command": "build_runner.quit",
+          "when": "false"
+        },
+        {
+          "command": "build_runner.openFile",
           "when": "false"
         }
       ],
@@ -101,7 +110,7 @@
     "webpack-cli": "^4.6.0"
   },
   "dependencies": {
-    "ps-list": "^7.2.0",
+    "ps-list": "^7.2.0", 
     "yaml": "^1.10.2"
   }
 }
