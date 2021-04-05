@@ -5,7 +5,7 @@ type EventEmitterTreeItem = BuildRunnerTreeItem | undefined | void;
 
 export class BuildRunnerTreeProvider
   implements vscode.TreeDataProvider<BuildRunnerTreeItem> {
-  private constructor() {}
+  private constructor() { }
 
   private static _instance: BuildRunnerTreeProvider;
 
@@ -28,19 +28,22 @@ export class BuildRunnerTreeProvider
     if (!element) {
       return this.items;
     } else {
-      return element.treeData.chilren?.map((e) => new BuildRunnerTreeItem(e));
+      return element.data.chilren?.map((e) => new BuildRunnerTreeItem(e));
     }
   };
 }
 
 export class BuildRunnerTreeItem extends vscode.TreeItem {
-  constructor(public treeData: TreeModel) {
+  constructor(public data: TreeModel) {
+
     super(
-      treeData.name,
-      treeData.type === "workspace"
+      data.name,
+      data.type === "workspace"
         ? vscode.TreeItemCollapsibleState.Collapsed
         : undefined
     );
   }
-  readonly tooltip = `${this.treeData.uri.path}`;
+  readonly resourceUri = this.data.uri;
+  readonly contextValue = this.data.type;
+  readonly tooltip = `${this.data.uri.path}`;
 }

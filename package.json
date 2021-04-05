@@ -18,31 +18,21 @@
     "commands": [
       {
         "category": "build-runner",
+        "command": "build_runner.build",
+        "title": "build_runner build",
+        "icon": "$(play)"
+      },
+      {
+        "category": "build-runner",
         "command": "build_runner.watch",
-        "title": "build_runner watch"
+        "title": "build_runner watch",
+        "icon": "$(server)"
       },
       {
         "category": "build-runner",
-        "command": "build_runner.watch.refresh",
-        "title": "build_runner watch refresh",
-        "icon": "$(debug-restart)"
-      },
-      {
-        "category": "build-runner",
-        "command": "build_runner.watch.quit",
+        "command": "build_runner.quit",
         "title": "build_runner watch quit",
         "icon": "$(debug-stop)"
-      },
-      {
-        "category": "build-runner",
-        "command": "build_runner.build",
-        "title": "build_runner build"
-      },
-      {
-        "category": "build-runner",
-        "command": "build_runner.build.all",
-        "title": "build_runner build all",
-        "icon": "$(play)"
       }
     ],
     "menus": {
@@ -54,34 +44,21 @@
         {
           "command": "build_runner.build",
           "when": "false"
-        }
-      ],
-      "explorer/context": [
-        {
-          "command": "build_runner.watch",
-          "when": "resourceFilename == pubspec.yaml && dart-code:dartProjectLoaded"
         },
         {
-          "command": "build_runner.build",
-          "when": "resourceFilename == pubspec.yaml && dart-code:dartProjectLoaded"
-        }
-      ],
-      "view/title": [
-        {
-          "command": "build_runner.build.all",
-          "when": "view == build_runner_view",
-          "group": "navigation"
+          "command": "build_runner.quit",
+          "when": "false"
         }
       ],
       "view/item/context": [
         {
-          "command": "build_runner.watch.refresh",
-          "when": "view == build_runner_view",
+          "command": "build_runner.watch",
+          "when": "view == build_runner_view && viewItem == pubspec",
           "group": "inline"
         },
         {
-          "command": "build_runner.watch.quit",
-          "when": "view == build_runner_view",
+          "command": "build_runner.build",
+          "when": "view == build_runner_view && viewItem == pubspec",
           "group": "inline"
         }
       ]
@@ -116,6 +93,7 @@
     "eslint": "^7.23.0",
     "glob": "^7.1.6",
     "mocha": "^8.3.2",
+    "prettier": "^2.2.1",
     "ts-loader": "^8.1.0",
     "typescript": "^4.2.3",
     "vscode-test": "^1.5.2",

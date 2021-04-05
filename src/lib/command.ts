@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import * as childProcess from "child_process";
 import * as fs from "fs";
 import psList = require("ps-list");
+import { LoadingTask, loadingUtil, outputUtil } from "../utils";
+import { BuildRunnerTreeItem } from "./tree";
 
 export interface ProcessArgs {
   cwd: string;
@@ -17,94 +19,133 @@ export class BuildRunnerCommand {
     return this._instance;
   }
 
-  private increase: number = 1;
-
-  ///创造一个唯一标识
-  private generateUniqueId() {
-    this.increase++;
-    return this.increase;
+  register(context: vscode.ExtensionContext) {
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        'build_runner.watch',
+        (args: BuildRunnerTreeItem) => this.watchCommand(args.data.uri, args.data.name)
+      ),
+    );
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        'build_runner.build',
+        (args: BuildRunnerTreeItem) => this.buildCommand(args.data.uri, args.data.name)
+      ),
+    );
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        'build_runner.terminate',
+        (args: BuildRunnerTreeItem) => this.terminateProcess(args.data.uri)
+      ),
+    );
   }
-
-  register(context: vscode.ExtensionContext) {}
 
   private processes: Processes = {};
 
   private outputs: vscode.OutputChannel[] = [];
 
   /**
-   * 终止进程
+   * 终止进程 
    * @param cwd
    */
-  private terminateProcess(uri: vscode.Uri) {
-    console.log(123);
+  private async terminateProcess(uri: vscode.Uri) {
     const cwd = getDirPath(uri);
     const process = this.processes[cwd];
-    console.log(process);
-    process.unref();
-    try {
-    } catch (error) {
-      console.log(error);
-    }
-    console.log(process.killed);
-
     delete this.processes[cwd];
-    console.log(this.processes);
-    console.log(345);
+    if (process?.pid) {
+
+      const list = await psList();
+      const cpids = list.filter((e) => e.ppid === process.pid).map(e => e.pid);//子线程
+      const ccpids = list.filter((e) => cpids.includes(e.ppid)).map(e => e.pid);//孙子线程
+      console.log(cpids);
+      console.log(ccpids);
+
+      ccpids.forEach(element => {
+        childProcess.execSync('kill ' + element);
+      });
+      cpids.forEach(element => {
+        childProcess.execSync('kill ' + element);
+      });
+    }
   }
   /**
    * 创建线程
    * @param cmd
    * @param args
    */
-  private createProcess(cmd: string, uri: vscode.Uri, title: string) {
+  private async createProcess(cmd: string, uri: vscode.Uri, title: string) {
+
     const cwd = getDirPath(uri);
 
-    const process = childProcess.spawn(
-      cmd.split(" ")[0],
-      cmd.split(" ").filter((e, i) => i !== 0),
-      {
-        cwd: cwd,
-        // stdio: "inherit",
-        // detached: true,
+    if (this.processes[cwd]) {
+      const picker = await vscode.window.showWarningMessage(`"${title}" is already active.`, '终止', '执行');
+      if (!picker) {
+        return;
+      } else {
+        await this.terminateProcess(uri);
       }
-    );
-    process.on("exit", (code) => {
-      console.log(title + " exit:", code);
-      childProcess.execSync("kill -15 " + process.pid);
-      process.unref();
-    });
-    process.stdout?.on("data", (message) => {
-      const messages = (message.toString() as string)
-        .split("\n")
-        .filter((e) => e);
-      messages.forEach((e) => console.log(title + " data:", e));
-      psList().then((e) =>
-        console.log(e.filter((e) => e.ppid === process.pid))
-      );
+      if (picker === '终止') {
+        return;
+      }
+    }
+
+
+    const base = cmd.split(' ')[0];
+    const args = cmd.split(' ').filter((_, i) => i !== 0);
+    const process = childProcess.spawn(base, args, { cwd });
+    this.processes[cwd] = process;
+
+
+    const output = outputUtil(title);
+
+    let loadingTask: LoadingTask | undefined;
+
+    const showLoading = async (value: any, increment?: number) => {
+      const message = (value.toString() as string).split("\n").join(" ");
+      if (increment ?? 0 >= 100) {
+        loadingTask?.(message, 100);
+        loadingTask = undefined;
+      } else {
+        loadingTask ??= await loadingUtil({
+          title: title,
+          location: vscode.ProgressLocation.Window,
+          cancellable: false,
+        });
+        loadingTask(message, increment);
+      }
+      output.fire(message);
+    };
+
+    showLoading(cmd);
+    output.show();
+    process.stdout?.on("data", (value) => {
+      const message = (value.toString());
+      const increment = message.includes("Succeeded after") ? 100 : undefined;
+      showLoading(value, increment);
     });
 
-    process.on("error", (error) => {
-      console.log(title + " error:", error);
+    process.on("error", (value) => showLoading(value));
+
+    process.stderr?.on("data", (value) => showLoading(value));
+
+    process.on("exit", (code) => {
+      showLoading(`exit ${code}`, 100);
     });
-    process.stderr?.on("data", (error) => {
-      console.log(title + " error:", error);
-    });
-    this.processes[cwd] = process;
-    console.log(process.pid);
+
   }
 
   watchCommand(uri: vscode.Uri, title: string) {
-    const cmd =
-      "flutter pub run build_runner watch --delete-conflicting-outputs";
+    const cmd = "flutter pub run build_runner watch --delete-conflicting-outputs";
     this.createProcess(cmd, uri, title);
   }
 
-  buildCommand(args: ProcessArgs) {}
-  reloadCommand(args: ProcessArgs) {}
+  buildCommand(uri: vscode.Uri, title: string) {
+    const cmd = "flutter pub run build_runner build --delete-conflicting-outputs";
+    this.createProcess(cmd, uri, title);
+  }
 }
 
 const getDirPath = (uri: vscode.Uri) => {
   const stat = fs.statSync(uri.fsPath);
-
   return stat.isFile() ? vscode.Uri.joinPath(uri, "../").fsPath : uri.fsPath;
 };

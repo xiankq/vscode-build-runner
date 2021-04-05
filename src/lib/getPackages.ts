@@ -2,8 +2,6 @@ import * as vscode from "vscode";
 import * as yaml from "yaml";
 import {
   PubspecModel,
-  PubspecTreeModel,
-  PubspecTreePubspecModel,
   TreeModel,
 } from "../models/pubspec";
 
@@ -23,9 +21,7 @@ export const getAllPubspec = async (): Promise<TreeModel[]> => {
   //工作区列表
   const workspaces = vscode.workspace.workspaceFolders ?? [];
 
-  const paths = workspaces.map(async (e) => {
-    return vscode.workspace.findFiles("**/pubspec.yaml");
-  });
+  const paths = workspaces.map(() => vscode.workspace.findFiles("**/pubspec.yaml"));
 
   //每个工作区内的pubspec.yaml路径列表
   const pubspecFilesList = await Promise.all(paths);
