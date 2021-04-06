@@ -45,14 +45,13 @@ export const getAllPubspec = async (): Promise<TreeModel[]> => {
   });
   //转换成 TreeModel[]
   const ret: TreeModel[] = pubspecObjsList.map((e, i) => {
+
     return {
       name: workspaces[i].name,
-      type: "workspace",
       uri: workspaces[i].uri,
-      chilren: e.map(($e, $i) => {
+      children: e.map(($e, $i) => {
         return {
           name: $e!.name,
-          type: "pubspec",
           uri: pubspecFilesList[i][$i],
         };
       }),

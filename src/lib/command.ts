@@ -3,7 +3,7 @@ import * as childProcess from "child_process";
 import * as fs from "fs";
 import psList = require("ps-list");
 import { LoadingTask, loadingUtil, outputUtil } from "../utils";
-import { BuildRunnerTreeItem } from "./tree";
+import { NestTreeItem, NestTreeProvider } from "./tree";
 
 export interface ProcessArgs {
   cwd: string;
@@ -20,84 +20,47 @@ export class BuildRunnerCommand {
   }
 
   register(context: vscode.ExtensionContext) {
-    context.subscriptions.push(
-      vscode.commands.registerCommand(
-        'build_runner.watch',
-        (args: BuildRunnerTreeItem) => this.watchCommand(args.data.uri, args.data.name)
-      ),
-    );
-    context.subscriptions.push(
-      vscode.commands.registerCommand(
-        'build_runner.build',
-        (args: BuildRunnerTreeItem) => this.buildCommand(args.data.uri, args.data.name)
-      ),
-    );
-    context.subscriptions.push(
-      vscode.commands.registerCommand(
-        'build_runner.terminate',
-        (args: BuildRunnerTreeItem) => this.terminateProcess(args.data.uri)
-      ),
-    );
+    const commands = [
+      vscode.commands.registerCommand('build_runner.watch', (args: NestTreeItem) => this.watch(args)),
+      vscode.commands.registerCommand('build_runner.build', (args: NestTreeItem) => this.build(args)),
+      vscode.commands.registerCommand('build_runner.terminate', (args: NestTreeItem) => this.terminate(args)),
+    ];
+    context.subscriptions.push.apply(context.subscriptions, commands);
   }
 
+  /**
+   * 存放正在运行的build_runner
+   */
   private processes: Processes = {};
+
+
+  /**
+   * 判断改路径是否正在运行build_runner
+   * @param uri 
+   * @returns 
+   */
+  isRunning = (uri: vscode.Uri) => Object.keys(this.processes).includes(getDirPath(uri));
+
 
   private outputs: vscode.OutputChannel[] = [];
 
-  /**
-   * 终止进程 
-   * @param cwd
-   */
-  private async terminateProcess(uri: vscode.Uri) {
-    const cwd = getDirPath(uri);
-    const process = this.processes[cwd];
-    delete this.processes[cwd];
-    if (process?.pid) {
 
-      const list = await psList();
-      const cpids = list.filter((e) => e.ppid === process.pid).map(e => e.pid);//子线程
-      const ccpids = list.filter((e) => cpids.includes(e.ppid)).map(e => e.pid);//孙子线程
-      console.log(cpids);
-      console.log(ccpids);
-
-      ccpids.forEach(element => {
-        childProcess.execSync('kill ' + element);
-      });
-      cpids.forEach(element => {
-        childProcess.execSync('kill ' + element);
-      });
-    }
-  }
   /**
    * 创建线程
    * @param cmd
    * @param args
    */
-  private async createProcess(cmd: string, uri: vscode.Uri, title: string) {
+  private async createProcess(cmd: string, data: NestTreeItem) {
 
-    const cwd = getDirPath(uri);
-
-    if (this.processes[cwd]) {
-      const picker = await vscode.window.showWarningMessage(`"${title}" is already active.`, '终止', '执行');
-      if (!picker) {
-        return;
-      } else {
-        await this.terminateProcess(uri);
-      }
-      if (picker === '终止') {
-        return;
-      }
-    }
-
-
+    const cwd = getDirPath(data.resourceUri);
     const base = cmd.split(' ')[0];
     const args = cmd.split(' ').filter((_, i) => i !== 0);
     const process = childProcess.spawn(base, args, { cwd });
     this.processes[cwd] = process;
 
+    NestTreeProvider.instance.refresh();
 
-    const output = outputUtil(title);
-
+    const output = outputUtil(data.title);
     let loadingTask: LoadingTask | undefined;
 
     const showLoading = async (value: any, increment?: number) => {
@@ -107,7 +70,7 @@ export class BuildRunnerCommand {
         loadingTask = undefined;
       } else {
         loadingTask ??= await loadingUtil({
-          title: title,
+          title: data.title,
           location: vscode.ProgressLocation.Window,
           cancellable: false,
         });
@@ -130,19 +93,47 @@ export class BuildRunnerCommand {
 
     process.on("exit", (code) => {
       showLoading(`exit ${code}`, 100);
+      NestTreeProvider.instance.refresh();
     });
 
   }
 
-  watchCommand(uri: vscode.Uri, title: string) {
-    const cmd = "flutter pub run build_runner watch --delete-conflicting-outputs";
-    this.createProcess(cmd, uri, title);
+  /**
+    * 终止进程 
+    * @param cwd
+    */
+  private async terminate(data: NestTreeItem) {
+    const cwd = getDirPath(data.resourceUri);
+    const process = this.processes[cwd];
+    delete this.processes[cwd];
+    if (process?.pid) {
+
+      const list = await psList();
+      const cpids = list.filter((e) => e.ppid === process.pid).map(e => e.pid);//子线程
+      const ccpids = list.filter((e) => cpids.includes(e.ppid)).map(e => e.pid);//孙子线程
+      console.log(cpids);
+      console.log(ccpids);
+
+      ccpids.forEach(element => {
+        childProcess.execSync('kill ' + element);
+      });
+      cpids.forEach(element => {
+        childProcess.execSync('kill ' + element);
+      });
+    }
   }
 
-  buildCommand(uri: vscode.Uri, title: string) {
-    const cmd = "flutter pub run build_runner build --delete-conflicting-outputs";
-    this.createProcess(cmd, uri, title);
+  private watch(data: NestTreeItem) {
+    const cmd = "flutter pub run build_runner watch --delete-conflicting-outputs";
+    return this.createProcess(cmd, data);
   }
+
+  private build(data: NestTreeItem) {
+    const cmd = "flutter pub run build_runner build --delete-conflicting-outputs";
+    return this.createProcess(cmd, data);
+  }
+
+
 }
 
 const getDirPath = (uri: vscode.Uri) => {

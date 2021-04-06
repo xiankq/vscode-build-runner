@@ -19,25 +19,20 @@
       {
         "category": "build-runner",
         "command": "build_runner.build",
-        "title": "build_runner build",
+        "title": "build",
         "icon": "$(play)"
       },
       {
         "category": "build-runner",
         "command": "build_runner.watch",
-        "title": "build_runner watch",
+        "title": "watch",
         "icon": "$(server)"
       },
       {
         "category": "build-runner",
-        "command": "build_runner.quit",
-        "title": "build_runner watch quit",
+        "command": "build_runner.terminate",
+        "title": "terminate",
         "icon": "$(debug-stop)"
-      },
-      {
-        "category": "build-runner",
-        "command": "build_runner.openFile",
-        "title": "openFile"
       }
     ],
     "menus": {
@@ -46,28 +41,29 @@
           "command": "build_runner.watch",
           "when": "false"
         },
-        { 
+        {
           "command": "build_runner.build",
           "when": "false"
         },
         {
-          "command": "build_runner.quit",
-          "when": "false"
-        },
-        {
-          "command": "build_runner.openFile",
+          "command": "build_runner.terminate",
           "when": "false"
         }
       ],
       "view/item/context": [
         {
           "command": "build_runner.watch",
-          "when": "view == build_runner_view && viewItem == pubspec",
+          "when": "view == build_runner_view && viewItem == file",
           "group": "inline"
         },
         {
           "command": "build_runner.build",
-          "when": "view == build_runner_view && viewItem == pubspec",
+          "when": "view == build_runner_view && viewItem == file",
+          "group": "inline"
+        },
+        {
+          "command": "build_runner.terminate",
+          "when": "view == build_runner_view && viewItem == running",
           "group": "inline"
         }
       ]
@@ -110,7 +106,7 @@
     "webpack-cli": "^4.6.0"
   },
   "dependencies": {
-    "ps-list": "^7.2.0", 
+    "ps-list": "^7.2.0",
     "yaml": "^1.10.2"
   }
 }

@@ -1,56 +1,59 @@
 import * as vscode from "vscode";
-import { TreeModel } from "../models/pubspec";
+import { BuildRunnerCommand } from "./command";
 
 type EventEmitterTreeItem = NestTreeItem | undefined | void;
 
-export class BuildRunnerTreeProvider
-  implements vscode.TreeDataProvider<NestTreeItem> {
+export class NestTreeProvider implements vscode.TreeDataProvider<NestTreeItem> {
   private constructor() { }
 
-  private static _instance: BuildRunnerTreeProvider;
-
+  private static _instance: NestTreeProvider;
   static get instance() {
-    this._instance ??= new BuildRunnerTreeProvider();
+    this._instance ??= new NestTreeProvider();
     return this._instance;
   }
+
 
   private readonly eventEmitter = new vscode.EventEmitter<EventEmitterTreeItem>();
 
   readonly refresh = (): void => this.eventEmitter.fire();
 
+  treeList: NestTreeItem[] = [];
+
   readonly onDidChangeTreeData = this.eventEmitter.event;
 
   readonly getTreeItem = (element: NestTreeItem) => element;
 
-  items: NestTreeItem[] = [];
+  readonly getChildren = (element: NestTreeItem) => !element ? this.treeList : element.children;
 
-  readonly getChildren = (element: NestTreeItem) => {
-    if (!element) {
-      return this.items;
-    } else {
-      return element.data.chilren?.map((e) => new NestTreeItem(e));
-    }
-  };
 }
+
+
+
 
 export class NestTreeItem extends vscode.TreeItem {
   constructor(
     public readonly title: string,
-    public readonly type: 'workspace' | 'pubspec',
     public readonly resourceUri: vscode.Uri,
-    public readonly children: NestTreeItem[],
+    public readonly children?: NestTreeItem[],
 
   ) {
     super(
       title,
-      type === "workspace" ? vscode.TreeItemCollapsibleState.Collapsed : undefined
+      children ? vscode.TreeItemCollapsibleState.Collapsed : undefined
     );
   }
-  readonly command = {
+  private isDir = this.children ? 'dir' : 'file';
+
+  private isRunning = BuildRunnerCommand.instance.isRunning(this.resourceUri);
+
+  readonly contextValue = this.isRunning ? 'running' : this.children ? 'dir' : 'file';
+
+  //点击树图项时的命令
+  readonly command = this.isDir === 'file' ? {
     title: 'Open file',
-    command: 'build_runner.openFile',
+    command: 'vscode.open',
     arguments: [this.resourceUri]
-  };
+  } : undefined;
 
   readonly tooltip = `${this.resourceUri.path}`;
 }

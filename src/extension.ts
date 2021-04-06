@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 import { BuildRunnerCommand } from "./lib/command";
 import { getAllPubspec } from "./lib/getPackages";
-import { BuildRunnerTreeItem, BuildRunnerTreeProvider } from "./lib/tree";
+import { NestTreeItem, NestTreeProvider } from "./lib/tree";
+import { TreeModel } from "./models/pubspec";
 
 
 
@@ -11,11 +12,20 @@ import { BuildRunnerTreeItem, BuildRunnerTreeProvider } from "./lib/tree";
 export async function activate(context: vscode.ExtensionContext) {
 
 
-  const list = await getAllPubspec();
-  vscode.window.registerTreeDataProvider("build_runner_view", BuildRunnerTreeProvider.instance);
-  BuildRunnerTreeProvider.instance.items = list.map((e) => new BuildRunnerTreeItem(e));
+
+  vscode.window.registerTreeDataProvider("build_runner_view", NestTreeProvider.instance);
+
   BuildRunnerCommand.instance.register(context);
-  BuildRunnerTreeProvider.instance.refresh();
+  const nestList = await getAllPubspec();
+  const recurse = (data: TreeModel): NestTreeItem => {
+    return new NestTreeItem(
+      data.name,
+      data.uri,
+      data.children?.map(e => recurse(e))
+    );
+  };
+  NestTreeProvider.instance.treeList = nestList.map(e => recurse(e));
+  NestTreeProvider.instance.refresh();
 
 }
 
