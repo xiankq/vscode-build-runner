@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getAllPubspec } from './getPackages';
+import { scanFile } from './scanFile';
 import { Process } from './process';
 import { NestTreeItem, NestTreeProvider } from './tree';
 import { TreeModel } from './models/pubspec';
@@ -7,14 +7,16 @@ import { TreeModel } from './models/pubspec';
 export async function activate(context: vscode.ExtensionContext) {
   vscode.window.registerTreeDataProvider('build_runner_view', NestTreeProvider.instance);
 
-  const commands = [
-    vscode.commands.registerCommand('build_runner.watch', (args: NestTreeItem) => Process.instance.create(args, 'watch')),
-    vscode.commands.registerCommand('build_runner.build', (args: NestTreeItem) => Process.instance.create(args, 'build')),
-    vscode.commands.registerCommand('build_runner.terminate', (args: NestTreeItem) => Process.instance.stop(args)),
-  ];
-  context.subscriptions.push.apply(context.subscriptions, commands);
+  const register = (command: string, callback: (...args: any[]) => any, thisArg?: any) => {
+    return context.subscriptions.push(vscode.commands.registerCommand(command, callback, thisArg));
+  };
 
-  const nestList = await getAllPubspec();
+  register('build_runner.watch', (args: NestTreeItem) => Process.instance.create(args, 'watch'));
+  register('build_runner.build', (args: NestTreeItem) => Process.instance.create(args, 'build'));
+  register('build_runner.terminate', (args: NestTreeItem) => Process.instance.stop(args));
+
+  const nestList = await scanFile();
+
   const recurse = (data: TreeModel): NestTreeItem => {
     return new NestTreeItem(
       data.name,
@@ -22,7 +24,6 @@ export async function activate(context: vscode.ExtensionContext) {
       data.children?.map((e) => recurse(e))
     );
   };
-  console.log(nestList.map((e) => recurse(e)));
 
   NestTreeProvider.instance.treeList = nestList.map((e) => recurse(e));
   NestTreeProvider.instance.refresh();

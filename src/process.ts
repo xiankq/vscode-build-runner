@@ -7,7 +7,16 @@ import { NestTreeItem } from './tree';
 interface Processes {
   [key: string]: childProcess.ChildProcess;
 }
-export type LoadingTask = { report: (message: string) => void; stop: () => void };
+type LoadingTask = { report: (message: string) => void; stop: () => void };
+
+type OutputTask = {
+  write: (data: string) => void;
+  show: (preserveFocus?: boolean | undefined) => void;
+  id: Thenable<number | undefined>;
+  close: () => void;
+};
+
+type Outputs = { [key: string]: OutputTask };
 
 export class Process {
   private static _instance: Process;
@@ -39,7 +48,7 @@ export class Process {
     });
   }
 
-  createTerminal(title: string, onClose: () => void) {
+  createOutput(title: string, onClose: () => void): OutputTask {
     const writeEmitter = new vscode.EventEmitter<string>();
     const pty: vscode.Pseudoterminal = {
       onDidWrite: writeEmitter.event,
@@ -48,17 +57,36 @@ export class Process {
         onClose?.();
         writeEmitter.dispose();
       },
-      handleInput: (value) => writeEmitter.fire('\r\n' + value),
+      handleInput: (value) => {
+        if (value === 'close') {
+          writeEmitter.fire('\r\n' + value);
+        }
+      },
     };
-    return vscode.window.createTerminal({ name: title, pty });
+    const terminal = vscode.window.createTerminal({ name: title, pty });
+
+    return {
+      write: (text: string) => writeEmitter.fire(text + '\r\n'),
+      show: terminal.show,
+      id: terminal.processId,
+      close: () => terminal.sendText('close'),
+    };
   }
 
   private processes: Processes = {};
-  private outputs: { [key: string]: vscode.Terminal } = {};
+  private outputs: Outputs = {};
 
   async create(data: NestTreeItem, type: 'watch' | 'build') {
     const cwd = this.getDirPath(data.resourceUri);
+
     const args = ['pub', 'run', 'build_runner', type, '--delete-conflicting-outputs'];
+
+    const output = this.createOutput(data.title, () => this.stop(data));
+    this.outputs[cwd] = output;
+    output.show();
+    output.write(cwd);
+    output.write(['flutter', ...args].join(' '));
+
     const process = childProcess.spawn('flutter', args, { cwd });
     this.processes[cwd] = process;
 
@@ -71,13 +99,6 @@ export class Process {
         _loading = undefined;
       }
     };
-    this.outputs[cwd] = this.createTerminal(data.title, () => {
-      this.stop(data);
-    });
-    const output = this.outputs[cwd];
-    output.show();
-    output.sendText(cwd);
-    output.sendText([process.spawnfile, ...args].join(' '));
 
     const getMessage = (value: any) => (value.toString() as string).split('\n').join(' ');
 
@@ -85,25 +106,25 @@ export class Process {
       const message = getMessage(value);
       const finished = message.includes('Succeeded after') ? true : false;
       await loading(message, finished);
-      output.sendText(message);
+      output.write(message);
     });
 
     process.on('error', async (value) => {
       const message = getMessage(value);
       await loading(message);
-      output.sendText(message);
+      output.write(message);
     });
 
     process.stderr?.on('data', async (value) => {
       const message = getMessage(value);
       await loading(message);
-      output.sendText(message);
+      output.write(message);
     });
 
     process.on('exit', async (code) => {
       await loading(`exit ${code}`, true);
-      output.sendText(`exit ${code}`);
-      output.dispose();
+      output.write(`exit ${code}`);
+      output.close();
       delete this.outputs[cwd];
       delete this.processes[cwd];
     });
