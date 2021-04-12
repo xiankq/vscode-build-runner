@@ -44,7 +44,7 @@ export const createOutput = async (title: string, onDispose: () => void): Promis
     activate: () => (invalid = false),
 
     invalidate: () => {
-      writeEmitter.fire('终端重用' + '\r\n');
+      writeEmitter.fire('\r\n\r\nTerminal will be reused by tasks, press any key to close it.\r\n');
       invalid = true;
     },
   };

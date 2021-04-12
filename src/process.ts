@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import psList = require('ps-list');
 import { NestTreeItem } from './tree';
 import { createLoading, createOutput, LoadingTask, OutputTask } from './util';
-
+import * as os from 'os';
 interface Processes {
   [key: string]: childProcess.ChildProcess;
 }
@@ -31,26 +31,32 @@ export class Process {
     const cwd = this.getDirPath(data.resourceUri);
     const args = ['pub', 'run', 'build_runner', type, '--delete-conflicting-outputs'];
 
-    let process = this.processes[cwd];
-
-    this.outputs[cwd] = this.outputs[cwd] ?? (await createOutput(data.title, () => this.stop(data)));
+    this.outputs[cwd] = this.outputs[cwd] ?? (await createOutput(data.title, () => this.terminate(data)));
     const output = this.outputs[cwd];
+    output.activate();
+
+    let process = this.processes[cwd];
     if (process) {
       const outputIsShow = await output.isShow();
-      if (outputIsShow) {
-        return await vscode.window.showErrorMessage('命令已处于活跃状态', '重启命令', '终止命令');
-      } else {
+      if (!outputIsShow) {
         return output.show();
       }
-    } else {
-      process = childProcess.spawn('flutter', args, { cwd });
-      this.processes[cwd] = process;
+
+      const option = await vscode.window.showWarningMessage(
+        `The task 'build_runner:(${data.title})' is already active.`,
+        'Terminate Task',
+        'Restart Task'
+      );
+
+      if (option === 'Terminate Task') {
+        return await this.terminate(data);
+      } else if (option === 'Restart Task') {
+        await this.terminate(data);
+      } else {
+        return;
+      }
     }
-
-    output.show();
-    output.write(cwd);
-    output.write(['flutter', ...args].join(' '));
-
+    output.activate();
     let _loading: LoadingTask | undefined;
     const loading = async (text: string, stop = false) => {
       _loading = _loading ?? (await createLoading(data.title));
@@ -60,6 +66,13 @@ export class Process {
         _loading = undefined;
       }
     };
+
+    output.show();
+    output.write(cwd);
+    output.write(['flutter', ...args].join(' '));
+    await loading(['flutter', ...args].join(' '));
+    process = childProcess.spawn('flutter', args, { cwd });
+    this.processes[cwd] = process;
 
     const getMessage = (value: any) => (value.toString() as string).split('\n').join(' ');
 
@@ -84,22 +97,35 @@ export class Process {
 
     process.on('exit', async (code) => {
       await loading(`exit ${code}`, true);
-      output.write(`exit ${code}`);
-      output.invalidate();
-      delete this.outputs[cwd];
+      output?.write(`exit ${code}`);
+      output?.invalidate();
       delete this.processes[cwd];
     });
   }
-
-  async stop(data: NestTreeItem) {
+  /**
+   *
+   * @param data
+   */
+  async terminate(data: NestTreeItem) {
     const cwd = this.getDirPath(data.resourceUri);
     const process = this.processes[cwd];
     if (process?.pid) {
       const list = await psList();
       const cpids = list.filter((e) => e.ppid === process.pid).map((e) => e.pid); //子线程
       const ccpids = list.filter((e) => cpids.includes(e.ppid)).map((e) => e.pid); //孙子线程
-      ccpids.forEach((e) => childProcess.execSync('kill ' + e));
-      cpids.forEach((e) => childProcess.execSync('kill ' + e));
+
+      const kill = os.platform() === 'win32' ? 'tskill ' : 'kill ';
+      ccpids.forEach((e) => childProcess.execSync(kill + e));
+      cpids.forEach((e) => childProcess.execSync(kill + e));
     }
+    let numid: NodeJS.Timeout;
+    await new Promise<void>((resolve) => {
+      numid = setInterval(() => {
+        if (!this.processes[cwd]) {
+          clearInterval(numid);
+          resolve();
+        }
+      }, 100);
+    });
   }
 }

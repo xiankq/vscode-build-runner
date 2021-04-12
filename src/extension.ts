@@ -14,7 +14,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   register('build_runner.watch', (args: NestTreeItem) => Process.instance.create(args, 'watch'));
   register('build_runner.build', (args: NestTreeItem) => Process.instance.create(args, 'build'));
-  register('build_runner.terminate', (args: NestTreeItem) => Process.instance.stop(args));
+  register('build_runner.terminate', (args: NestTreeItem) => Process.instance.terminate(args));
 
   const nestList = await scanFile();
 
