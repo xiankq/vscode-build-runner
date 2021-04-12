@@ -25,7 +25,11 @@ export class NestTreeProvider implements vscode.TreeDataProvider<NestTreeItem> {
 }
 
 export class NestTreeItem extends vscode.TreeItem {
-  constructor(public readonly title: string, public readonly resourceUri: vscode.Uri, public readonly children?: NestTreeItem[]) {
+  constructor(
+    public readonly title: string,
+    public readonly resourceUri: vscode.Uri,
+    public readonly children?: NestTreeItem[]
+  ) {
     super(title, children ? vscode.TreeItemCollapsibleState.Collapsed : undefined);
   }
   private isDir = this.children ? 'dir' : 'file';

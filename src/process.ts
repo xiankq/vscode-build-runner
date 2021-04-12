@@ -3,20 +3,15 @@ import * as childProcess from 'child_process';
 import * as fs from 'fs';
 import psList = require('ps-list');
 import { NestTreeItem } from './tree';
+import { createLoading, createOutput, LoadingTask, OutputTask } from './util';
 
 interface Processes {
   [key: string]: childProcess.ChildProcess;
 }
-type LoadingTask = { report: (message: string) => void; stop: () => void };
 
-type OutputTask = {
-  write: (data: string) => void;
-  show: (preserveFocus?: boolean | undefined) => void;
-  id: Thenable<number | undefined>;
-  close: () => void;
+type Outputs = {
+  [key: string]: OutputTask;
 };
-
-type Outputs = { [key: string]: OutputTask };
 
 export class Process {
   private static _instance: Process;
@@ -29,70 +24,36 @@ export class Process {
     return fs.statSync(uri.fsPath).isFile() ? vscode.Uri.joinPath(uri, '../').fsPath : uri.fsPath;
   }
 
-  async createLoading(title: string) {
-    return new Promise<LoadingTask>((resolve) => {
-      const option = {
-        location: vscode.ProgressLocation.Window,
-        title,
-        cancellable: false,
-      };
-      vscode.window.withProgress(option, (progress) => {
-        return new Promise<void>((stop) => {
-          const report = (message: string) => progress.report({ message });
-          resolve({
-            report,
-            stop: () => stop(),
-          });
-        });
-      });
-    });
-  }
-
-  createOutput(title: string, onClose: () => void): OutputTask {
-    const writeEmitter = new vscode.EventEmitter<string>();
-    const pty: vscode.Pseudoterminal = {
-      onDidWrite: writeEmitter.event,
-      open() {},
-      close() {
-        onClose?.();
-        writeEmitter.dispose();
-      },
-      handleInput: (value) => {
-        if (value === 'close') {
-          writeEmitter.fire('\r\n' + value);
-        }
-      },
-    };
-    const terminal = vscode.window.createTerminal({ name: title, pty });
-
-    return {
-      write: (text: string) => writeEmitter.fire(text + '\r\n'),
-      show: terminal.show,
-      id: terminal.processId,
-      close: () => terminal.sendText('close'),
-    };
-  }
-
   private processes: Processes = {};
   private outputs: Outputs = {};
 
   async create(data: NestTreeItem, type: 'watch' | 'build') {
     const cwd = this.getDirPath(data.resourceUri);
-
     const args = ['pub', 'run', 'build_runner', type, '--delete-conflicting-outputs'];
 
-    const output = this.createOutput(data.title, () => this.stop(data));
-    this.outputs[cwd] = output;
+    let process = this.processes[cwd];
+
+    this.outputs[cwd] = this.outputs[cwd] ?? (await createOutput(data.title, () => this.stop(data)));
+    const output = this.outputs[cwd];
+    if (process) {
+      const outputIsShow = await output.isShow();
+      if (outputIsShow) {
+        return await vscode.window.showErrorMessage('命令已处于活跃状态', '重启命令', '终止命令');
+      } else {
+        return output.show();
+      }
+    } else {
+      process = childProcess.spawn('flutter', args, { cwd });
+      this.processes[cwd] = process;
+    }
+
     output.show();
     output.write(cwd);
     output.write(['flutter', ...args].join(' '));
 
-    const process = childProcess.spawn('flutter', args, { cwd });
-    this.processes[cwd] = process;
-
     let _loading: LoadingTask | undefined;
     const loading = async (text: string, stop = false) => {
-      _loading = _loading ?? (await this.createLoading(data.title));
+      _loading = _loading ?? (await createLoading(data.title));
       _loading.report(text);
       if (stop) {
         _loading.stop();
@@ -124,7 +85,7 @@ export class Process {
     process.on('exit', async (code) => {
       await loading(`exit ${code}`, true);
       output.write(`exit ${code}`);
-      output.close();
+      output.invalidate();
       delete this.outputs[cwd];
       delete this.processes[cwd];
     });
