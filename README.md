@@ -1,70 +1,39 @@
-# vscode-build-runner README
+# 快速运行 Flutter/Dart build_runner的VSCode插件
 
-This is the README for your extension "vscode-build-runner". After writing up a brief description, we recommend including the following sections.
+## Inspiration
+灵感来源于VSCode自带的NPM脚本工具
+
+
 
 ## Features
+* 与`VSCode NPM脚本`几乎一致的优质体验
+* 支持多个工作区下的多个独立Package的build_runner运行
+* 自动识别工作区中带有build_runner依赖的Package
+* 多个Package运行时日志打印完全独立
+* 同时支持build_runner watch/build
+* 插件默认`--delete-conflicting-outputs`配置启动build_runner
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+## Usage
+* 你务必要正确配置Flutter/dart的环境变量（特别是window环境，你必须把Flutter `PATH` 配置在`系统变量`而不是`用户变量`中）
+* 阅读[build_runner](https://github.com/dart-lang/build/tree/master/build_runner)相关文档。有必要时，你需要对每一个即将运行的package配置`build.yaml`来忽略一些不必要的文件以至于提升编译速度
+* 关闭对应的终端会触发build_runner关闭
 
-For example if there is an image subfolder under your extension project workspace:
 
-\!\[feature X\]\(images/feature-x.png\)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Option
+插件自动读取带有`build_runner`依赖的`pubspec.yaml`文件
+```yaml
+  #pubspec.yaml
+  #...
+  dev_dependencies
+   build_runner: any
+  #or
+  dependencies
+   build_runner: any
+  #...
+```
 
-## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## screenshot
+![screenshot.png](https://i.loli.net/2021/04/13/azTckg8venIJExi.png)
 
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**

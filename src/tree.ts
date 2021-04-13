@@ -30,7 +30,7 @@ export class NestTreeItem extends vscode.TreeItem {
     public readonly resourceUri: vscode.Uri,
     public readonly children?: NestTreeItem[]
   ) {
-    super(title, children ? vscode.TreeItemCollapsibleState.Collapsed : undefined);
+    super(title, children ? vscode.TreeItemCollapsibleState.Expanded : undefined);
   }
   private isDir = this.children ? 'dir' : 'file';
 
