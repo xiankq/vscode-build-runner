@@ -5,6 +5,8 @@ import psList = require('ps-list');
 import { NestTreeItem } from './tree';
 import { createLoading, createOutput, LoadingTask, OutputTask } from './util';
 import * as os from 'os';
+
+import pidtree = require('pidtree');
 interface Processes {
   [key: string]: childProcess.ChildProcess;
 }
@@ -27,6 +29,12 @@ export class Process {
   private processes: Processes = {};
   private outputs: Outputs = {};
 
+  /**
+   * 创建进程
+   * @param data
+   * @param type
+   * @returns
+   */
   async create(data: NestTreeItem, type: 'watch' | 'build') {
     const cwd = this.getDirPath(data.resourceUri);
     const args = ['pub', 'run', 'build_runner', type, '--delete-conflicting-outputs'];
@@ -71,7 +79,7 @@ export class Process {
     output.write(cwd);
     output.write(['flutter', ...args].join(' '));
     await loading(['flutter', ...args].join(' '));
-    process = childProcess.spawn('flutter', args, { cwd });
+    process = childProcess.spawn('flutter', args, { cwd, shell: os.platform() === 'win32' });
     this.processes[cwd] = process;
 
     const getMessage = (value: any) => (value.toString() as string).split('\n').join(' ');
@@ -96,6 +104,10 @@ export class Process {
     });
 
     process.on('exit', async (code) => {
+      console.log('exit ' + data.title);
+      try {
+        this.processes[cwd].kill();
+      } catch (e) {}
       await loading(`exit ${code}`, true);
       output?.write(`exit ${code}`);
       output?.invalidate();
@@ -103,20 +115,29 @@ export class Process {
     });
   }
   /**
-   *
+   * 终止进程
    * @param data
    */
   async terminate(data: NestTreeItem) {
     const cwd = this.getDirPath(data.resourceUri);
     const process = this.processes[cwd];
-    if (process?.pid) {
-      const list = await psList();
-      const cpids = list.filter((e) => e.ppid === process.pid).map((e) => e.pid); //子线程
-      const ccpids = list.filter((e) => cpids.includes(e.ppid)).map((e) => e.pid); //孙子线程
 
-      const kill = os.platform() === 'win32' ? 'tskill ' : 'kill ';
-      ccpids.forEach((e) => childProcess.execSync(kill + e));
-      cpids.forEach((e) => childProcess.execSync(kill + e));
+    if (process?.pid) {
+      const isWindow = os.platform() === 'win32';
+      if (isWindow) {
+        const pids = await pidtree(process.pid);
+        console.log(pids);
+        pids?.forEach((cpid) => {
+          childProcess.exec('tskill ' + cpid);
+        });
+      } else {
+        const list = await psList();
+        console.log(list);
+        const cpids = list.filter((e) => e.ppid === process.pid).map((e) => e.pid); //子线程
+        const ccpids = list.filter((e) => cpids.includes(e.ppid)).map((e) => e.pid); //孙子线程
+        ccpids.forEach((e) => childProcess.execSync('kill ' + e));
+        cpids.forEach((e) => childProcess.execSync('kill ' + e));
+      }
     }
     let numid: NodeJS.Timeout;
     await new Promise<void>((resolve) => {
