@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
-import psList = require('ps-list');
 import { NestTreeItem } from './tree';
 import { createLoading, createOutput, LoadingTask, OutputTask } from './util';
 import * as os from 'os';
@@ -104,10 +103,7 @@ export class Process {
     });
 
     process.on('exit', async (code) => {
-      console.log('exit ' + data.title);
-      try {
-        this.processes[cwd].kill();
-      } catch (e) {}
+      this.processes[cwd]?.kill();
       await loading(`exit ${code}`, true);
       output?.write(`exit ${code}`);
       output?.invalidate();
@@ -124,24 +120,15 @@ export class Process {
 
     if (process?.pid) {
       const isWindow = os.platform() === 'win32';
-      if (isWindow) {
-        const pids = await pidtree(process.pid);
-        console.log(pids);
-        pids?.forEach((cpid) => {
-          childProcess.exec('tskill ' + cpid);
-        });
-      } else {
-        const list = await psList();
-        console.log(list);
-        const cpids = list.filter((e) => e.ppid === process.pid).map((e) => e.pid); //子线程
-        const ccpids = list.filter((e) => cpids.includes(e.ppid)).map((e) => e.pid); //孙子线程
-        ccpids.forEach((e) => childProcess.execSync('kill ' + e));
-        cpids.forEach((e) => childProcess.execSync('kill ' + e));
-      }
+      const kill = isWindow ? 'tskill' : 'kill';
+      const pids = await pidtree(process.pid);
+      console.log(pids);
+      pids?.forEach((cpid) => {
+        childProcess.exec(`${kill} ${cpid}`);
+      });
     }
-    let numid: NodeJS.Timeout;
     await new Promise<void>((resolve) => {
-      numid = setInterval(() => {
+      const numid = setInterval(() => {
         if (!this.processes[cwd]) {
           clearInterval(numid);
           resolve();

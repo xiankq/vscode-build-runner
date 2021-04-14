@@ -14,7 +14,7 @@
 * 插件默认`--delete-conflicting-outputs`配置启动build_runner
 
 ## Usage
-* 你务必要正确配置Flutter/dart的环境变量（特别是window环境，你必须把Flutter `PATH` 配置在`系统变量`而不是`用户变量`中）
+* 你务必要正确配置Flutter/dart的环境变量
 * 阅读[build_runner](https://github.com/dart-lang/build/tree/master/build_runner)相关文档。有必要时，你需要对每一个即将运行的package配置`build.yaml`来忽略一些不必要的文件以至于提升编译速度
 * 关闭对应的终端会触发build_runner关闭
 
