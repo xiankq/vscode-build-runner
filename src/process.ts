@@ -38,7 +38,12 @@ export class Process {
     const cwd = this.getDirPath(data.resourceUri);
     const args = ['pub', 'run', 'build_runner', type, '--delete-conflicting-outputs'];
 
-    this.outputs[cwd] = this.outputs[cwd] ?? (await createOutput(data.title, () => this.terminate(data)));
+    this.outputs[cwd] =
+      this.outputs[cwd] ??
+      (await createOutput(data.title, async () => {
+        delete this.outputs[cwd];
+        await this.terminate(data);
+      }));
     const output = this.outputs[cwd];
     output.activate();
 
@@ -108,6 +113,7 @@ export class Process {
       output?.write(`exit ${code}`);
       output?.invalidate();
       delete this.processes[cwd];
+      console.log('this.processes[cwd]=' + this.processes[cwd]);
     });
   }
   /**
@@ -122,7 +128,6 @@ export class Process {
       const isWindow = os.platform() === 'win32';
       const kill = isWindow ? 'tskill' : 'kill';
       const pids = await pidtree(process.pid);
-      console.log(pids);
       pids?.forEach((cpid) => {
         childProcess.exec(`${kill} ${cpid}`);
       });
