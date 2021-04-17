@@ -4,6 +4,8 @@ import { Process } from './process';
 import { NestTreeItem, NestTreeProvider } from './tree';
 import { TreeModel } from './models/pubspec';
 export async function activate(context: vscode.ExtensionContext) {
+  console.log('dart build_runner load');
+  
   vscode.window.registerTreeDataProvider('build_runner_view', NestTreeProvider.instance);
 
   const register = (command: string, callback: (...args: any[]) => any, thisArg?: any) => {

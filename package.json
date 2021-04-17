@@ -3,7 +3,7 @@
   "displayName": "Dart build_runner",
   "description": "Dart build_runner tools in VSCode.",
   "publisher": "Kaiqun",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "engines": {
     "vscode": "^1.55.0"
   },
@@ -71,11 +71,6 @@
         {
           "command": "build_runner.build",
           "when": "view == build_runner_view && viewItem == file",
-          "group": "inline"
-        },
-        {
-          "command": "build_runner.terminate",
-          "when": "view == build_runner_view && viewItem == running",
           "group": "inline"
         }
       ]

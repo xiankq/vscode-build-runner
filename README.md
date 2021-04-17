@@ -1,27 +1,30 @@
-# 快速运行 Flutter/Dart build_runner的VSCode插件
+# Quickly run the VSCode plugin of Flutter/Dart build_runner
+
+ English | [简体中文](https://github.com/awagege/vscode-build-runner/blob/master/README_zh.md)
 
 ## Inspiration
-灵感来源于VSCode自带的NPM脚本工具
+Inspired by the NPM script tool that comes with VSCode.
 
 
 
 ## Features
-* 与`VSCode NPM脚本`几乎一致的优质体验
-* 支持多个工作区下的多个独立Package的build_runner运行
-* 自动识别工作区中带有build_runner依赖的Package
-* 多个Package运行时日志打印完全独立
-* 同时支持build_runner watch/build
-* 插件默认`--delete-conflicting-outputs`配置启动build_runner
+* High-quality experience almost the same as `VSCode NPM script`.
+* Support build_runner operation of multiple independent packages under multiple workspaces.
+* Automatically identify Packages with build_runner dependencies in the workspace.
+* Log printing is completely independent when running multiple packages.
+* Support build_runner watch/build at the same time.
+* The plugin default `--delete-conflicting-outputs` configuration starts build_runner.
+
 
 ## Usage
-* 你务必要正确配置Flutter/dart的环境变量
-* 阅读[build_runner](https://github.com/dart-lang/build/tree/master/build_runner)相关文档。有必要时，你需要对每一个即将运行的package配置`build.yaml`来忽略一些不必要的文件以至于提升编译速度
-* 关闭对应的终端会触发build_runner关闭
+* You must configure the Flutter/dart environment variables correctly.
+* Read [build_runner](https://github.com/dart-lang/build/tree/master/build_runner) related documents. When necessary, you need to configure `build.yaml` for each package to be run to ignore some unnecessary files to improve compilation speed.
+* Closing the corresponding terminal will trigger build_runner to close.
 
 
 
 ## Option
-插件自动读取带有`build_runner`依赖的`pubspec.yaml`文件
+The plugin automatically reads the `pubspec.yaml` file with `build_runner` dependencies.
 ```yaml
   #pubspec.yaml
   #...
@@ -35,5 +38,5 @@
 
 
 ## screenshot
-![screenshot.png](https://i.loli.net/2021/04/13/azTckg8venIJExi.png)
+![screenshot.png](https://ftp.bmp.ovh/imgs/2021/04/070cb16d017ee66c.png)
 
