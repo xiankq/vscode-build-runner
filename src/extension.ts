@@ -1,33 +1,16 @@
+// The module 'vscode' contains the VS Code extensibility API
+// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { scanFile } from './scanFile';
-import { Process } from './process';
-import { NestTreeItem, NestTreeProvider } from './tree';
-import { TreeModel } from './models/pubspec';
-export async function activate(context: vscode.ExtensionContext) {
-  console.log('dart build_runner load');
-  
-  vscode.window.registerTreeDataProvider('build_runner_view', NestTreeProvider.instance);
+import { getProjectInfos } from './tree';
 
-  const register = (command: string, callback: (...args: any[]) => any, thisArg?: any) => {
-    return context.subscriptions.push(vscode.commands.registerCommand(command, callback, thisArg));
-  };
+// this method is called when your extension is activated
+// your extension is activated the very first time the command is executed
+export const activate = async (context: vscode.ExtensionContext) => {
+	console.log('dart build_runner activate');
+	const res = await getProjectInfos();
+	console.log(res);
 
-  register('build_runner.watch', (args: NestTreeItem) => Process.instance.create(args, 'watch'));
-  register('build_runner.build', (args: NestTreeItem) => Process.instance.create(args, 'build'));
-  register('build_runner.terminate', (args: NestTreeItem) => Process.instance.terminate(args));
+};
 
-  const nestList = await scanFile();
-
-  const recurse = (data: TreeModel): NestTreeItem => {
-    return new NestTreeItem(
-      data.name,
-      data.uri,
-      data.children?.map((e) => recurse(e))
-    );
-  };
-
-  NestTreeProvider.instance.treeList = nestList.map((e) => recurse(e));
-  NestTreeProvider.instance.refresh();
-}
-
-export function deactivate() {}
+// this method is called when your extension is deactivated
+export function deactivate() { }

@@ -1,50 +1,46 @@
-import * as vscode from 'vscode';
+import * as vsc from 'vscode';
 
-type EventEmitterTreeItem = NestTreeItem | undefined | void;
+import { readYaml } from "./shared/readYaml";
+import { scanFile, ScanFileTree } from "./shared/scanFile";
+import { PubspecModel } from "./types/pubspec";
 
-export class NestTreeProvider implements vscode.TreeDataProvider<NestTreeItem> {
-  private constructor() {}
 
-  private static _instance: NestTreeProvider;
-  static get instance() {
-    this._instance ??= new NestTreeProvider();
-    return this._instance;
-  }
-
-  private readonly eventEmitter = new vscode.EventEmitter<EventEmitterTreeItem>();
-
-  readonly refresh = (): void => this.eventEmitter.fire();
-
-  treeList: NestTreeItem[] = [];
-
-  readonly onDidChangeTreeData = this.eventEmitter.event;
-
-  readonly getTreeItem = (element: NestTreeItem) => element;
-
-  readonly getChildren = (element: NestTreeItem) => (!element ? this.treeList : element.children);
+export interface PubspecInfo {
+    name: string,
+    uri: vsc.Uri,
 }
+export interface ProjectInfo {
+    workspace: vsc.WorkspaceFolder,
+    pubspecs: PubspecInfo[]
+}
+/**
+ * 获取所有有效的Pubspec.yaml树
+ */
+export const getProjectInfos = async () => {
+    const trees = await scanFile('**/pubspec.yaml');
+    const projectInfos: ProjectInfo[] = [];
 
-export class NestTreeItem extends vscode.TreeItem {
-  constructor(
-    public readonly title: string,
-    public readonly resourceUri: vscode.Uri,
-    public readonly children?: NestTreeItem[]
-  ) {
-    super(title, children ? vscode.TreeItemCollapsibleState.Expanded : undefined);
-  }
-  private isDir = this.children ? 'dir' : 'file';
-
-  readonly contextValue = this.children ? 'dir' : 'file';
-
-  //点击树图项时的命令
-  readonly command =
-    this.isDir === 'file'
-      ? {
-          title: 'Open file',
-          command: 'vscode.open',
-          arguments: [this.resourceUri],
+    const promises = trees.filter(({ fileUris }) => fileUris.length).map(async ({ workspace, fileUris }) => {
+        const projectInfo: ProjectInfo = {
+            workspace,
+            pubspecs: []
+        };
+        const _promises = fileUris.map(async uri => {
+            const obj = await readYaml(uri) as PubspecModel | null;
+            const dependencies = {
+                ...obj?.dependencies ?? {},
+                ...obj?.dev_dependencies ?? {},
+            };
+            if (Object.keys(dependencies).includes('build_runner')) {
+                const name = obj?.name ?? 'unknown_name';
+                projectInfo.pubspecs.push({ name, uri });
+            }
+        });
+        await Promise.all(_promises);
+        if (projectInfo.pubspecs.length) {
+            projectInfos.push(projectInfo);
         }
-      : undefined;
-
-  readonly tooltip = `${this.resourceUri.path}`;
-}
+    });
+    await Promise.all(promises);
+    return projectInfos;
+};
