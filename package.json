@@ -15,17 +15,65 @@
     "workspaceContains:*/pubspec.yaml",
     "workspaceContains:*/*/pubspec.yaml"
   ],
-  "extensionDependencies": [
-    "Dart-Code.dart-code"
-  ],
+
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-build-runner.helloWorld",
-        "title": "Hello World"
+        "category": "build-runner",
+        "command": "build_runner.build",
+        "title": "build",
+        "icon": "$(play)"
+      },
+      {
+        "category": "build-runner",
+        "command": "build_runner.watch",
+        "title": "watch",
+        "icon": "$(server)"
+      },
+      {
+        "category": "build-runner",
+        "command": "build_runner.quit",
+        "title": "terminate",
+        "icon": "$(debug-stop)"
       }
-    ]
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "build_runner.watch",
+          "when": "false"
+        },
+        {
+          "command": "build_runner.build",
+          "when": "false"
+        },
+        {
+          "command": "build_runner.quit",
+          "when": "false"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "build_runner.watch",
+          "when": "view == build_runner_view && viewItem == file",
+          "group": "inline"
+        },
+        {
+          "command": "build_runner.build",
+          "when": "view == build_runner_view && viewItem == file",
+          "group": "inline"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "build_runner_view",
+          "name": "BUILD RUNNER"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
@@ -47,6 +95,7 @@
     "glob": "^7.1.7",
     "mocha": "^9.1.3",
     "path": "^0.12.7",
+    "prettier": "^2.4.1",
     "typescript": "^4.4.4"
   },
   "dependencies": {
