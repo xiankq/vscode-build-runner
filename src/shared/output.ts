@@ -77,7 +77,7 @@ export class OutputService {
       unActivate: () => {
         invalid = true;
         writeEmitter.fire(
-          '\r\n\r\n%vs.workbench.contrib.tasks.browser.terminalTaskSystem.reuseTerminal%\r\n'
+          `\r\n\r\nTerminal will be reused by tasks, press any key to close it.\r\n`
         );
       },
     };

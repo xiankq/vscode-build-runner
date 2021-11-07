@@ -1,13 +1,29 @@
 {
-  "name": "vscode-build-runner",
-  "displayName": "vscode-build-runner",
+  "name": "build-runner",
+  "displayName": "Dart build_runner",
   "description": "Dart build_runner tools in VSCode.",
-  "version": "0.0.1",
+  "publisher": "Kaiqun",
+  "version": "2.0.0",
   "engines": {
     "vscode": "^1.62.0"
   },
+  "repository": "https://github.com/awagege/vscode-build-runner",
   "categories": [
     "Other"
+  ],
+  "keywords": [
+    "flutter",
+    "dart",
+    "build_runner",
+    "json_serializable",
+    "freezed",
+    "built_value",
+    "flutter_mobx",
+    "build runner",
+    "generate",
+    "generator"
+    
+    
   ],
   "activationEvents": [
     "onLanguage:dart",
@@ -18,6 +34,7 @@
   "extensionDependencies": [
     "Dart-Code.dart-code"
   ],
+  "icon": "static/icon.png",
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -78,6 +95,8 @@
     }
   },
   "scripts": {
+    "publish": "vsce publish",
+    "build": "vsce package",
     "vscode:prepublish": "yarn run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
@@ -86,15 +105,15 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/glob": "^7.1.4",
+    "@types/glob": "^7.2.0",
     "@types/mocha": "^9.0.0",
-    "@types/node": "14.x",
-    "@types/vscode": "^1.61.0",
-    "@typescript-eslint/eslint-plugin": "^5.1.0",
-    "@typescript-eslint/parser": "^5.1.0",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.62.0",
+    "@typescript-eslint/eslint-plugin": "^5.3.0",
+    "@typescript-eslint/parser": "^5.3.0",
     "@vscode/test-electron": "^1.6.2",
-    "eslint": "^8.1.0",
-    "glob": "^7.1.7",
+    "eslint": "^8.2.0",
+    "glob": "^7.2.0",
     "mocha": "^9.1.3",
     "path": "^0.12.7",
     "prettier": "^2.4.1",
@@ -102,7 +121,6 @@
   },
   "dependencies": {
     "pidtree": "^0.5.0",
-    "vscode-nls": "^5.0.0",
     "yaml": "^1.10.2"
   }
 }

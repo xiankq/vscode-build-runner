@@ -1,10 +1,8 @@
 import * as vsc from 'vscode';
 import { createProcess } from './createProcess';
-import { LoadingService } from './shared/loading';
-import { OutputService } from './shared/output';
+import { createTreeView } from './createTreeView';
 import { ProcessService } from './shared/process';
-import { TreeViewItem, TreeViewProvider } from './shared/treeView';
-import { getProjectInfos, ProjectInfo } from './tree';
+import { TreeViewItem } from './shared/treeView';
 
 export const activate = async (context: vsc.ExtensionContext) => {
   console.log('dart build_runner activate');
@@ -34,27 +32,8 @@ export const activate = async (context: vsc.ExtensionContext) => {
     ProcessService.i.kill(unique);
   });
 
-  vsc.window.registerTreeDataProvider(
-    'build_runner_view',
-    TreeViewProvider.instance
-  );
-
-  const infos = await getProjectInfos();
-  const treeList = infos.map(({ workspace, pubspecs }) => {
-    return new TreeViewItem(
-      workspace.name,
-      workspace.uri,
-      vsc.FileType.Directory,
-      pubspecs.map(({ name, uri }) => {
-        return new TreeViewItem(name, uri, vsc.FileType.File);
-      })
-    );
-  });
-  TreeViewProvider.instance.treeList = treeList;
-  TreeViewProvider.instance.refresh();
+  createTreeView();
 };
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
-
-const createTreeView = () => {};
