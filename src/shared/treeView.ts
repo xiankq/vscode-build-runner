@@ -21,28 +21,36 @@ export class TreeViewProvider implements vsc.TreeDataProvider<TreeViewItem> {
 
   readonly getTreeItem = (element: TreeViewItem) => element;
 
-  readonly getChildren = (element: TreeViewItem) => (!element ? this.treeList : element.children);
+  readonly getChildren = (element: TreeViewItem) =>
+    !element ? this.treeList : element.children;
 }
 
 export class TreeViewItem extends vsc.TreeItem {
   constructor(
-    public readonly title: string,
-    public readonly resourceUri: vsc.Uri,
-    public readonly fileType: vsc.FileType,
-    public readonly children?: TreeViewItem[]
+    readonly title: string,
+    readonly resourceUri: vsc.Uri,
+    readonly fileType: vsc.FileType,
+    readonly children?: TreeViewItem[]
   ) {
-    super(title, children ? vsc.TreeItemCollapsibleState.Expanded : undefined);
+    super(
+      title,
+      fileType === vsc.FileType.Directory
+        ? vsc.TreeItemCollapsibleState.Expanded
+        : undefined
+    );
   }
-
-  readonly contextValue = this.fileType === vsc.FileType.Directory ? 'dir' : 'file';
   readonly unique = this.resourceUri.fsPath;
+
+  readonly contextValue =
+    this.fileType === vsc.FileType.Directory ? 'dir' : 'file';
 
   //点击树图项时的命令
   readonly command =
     this.fileType === vsc.FileType.File
       ? {
           title: 'Open file',
-          command: 'vsc.open',
+          command: 'vscode.open',
+          tooltip: this.resourceUri.fsPath,
           arguments: [this.resourceUri],
         }
       : undefined;

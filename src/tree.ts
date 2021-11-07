@@ -13,6 +13,7 @@ export interface ProjectInfo {
     workspace: vsc.WorkspaceFolder,
     pubspecs: PubspecInfo[]
 }
+
 /**
  * 获取所有有效的Pubspec.yaml树
  */

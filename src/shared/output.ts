@@ -55,13 +55,17 @@ export class OutputService {
         }
       },
     };
-    const terminal = vsc.window.createTerminal({ name: title, pty });
-
+    const terminal = vsc.window.createTerminal({
+      name: title,
+      pty,
+      iconPath: new vsc.ThemeIcon('tools'),
+    });
     const isShow = async () => {
       const id = await terminal.processId;
       const activeId = await vsc.window.activeTerminal?.processId;
       return activeId === id;
     };
+
     terminal.show();
     const instance = {
       unique,
@@ -72,7 +76,9 @@ export class OutputService {
       activate: () => (invalid = false),
       unActivate: () => {
         invalid = true;
-        writeEmitter.fire('\r\n\r\nTerminal will be reused by tasks, press any key to close it.\r\n');
+        writeEmitter.fire(
+          '\r\n\r\n%vs.workbench.contrib.tasks.browser.terminalTaskSystem.reuseTerminal%\r\n'
+        );
       },
     };
     this.instances.push(instance);

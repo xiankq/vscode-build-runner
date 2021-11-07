@@ -15,7 +15,9 @@
     "workspaceContains:*/pubspec.yaml",
     "workspaceContains:*/*/pubspec.yaml"
   ],
-
+  "extensionDependencies": [
+    "Dart-Code.dart-code"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -34,7 +36,7 @@
       {
         "category": "build-runner",
         "command": "build_runner.quit",
-        "title": "terminate",
+        "title": "quit",
         "icon": "$(debug-stop)"
       }
     ],
@@ -100,6 +102,7 @@
   },
   "dependencies": {
     "pidtree": "^0.5.0",
+    "vscode-nls": "^5.0.0",
     "yaml": "^1.10.2"
   }
 }

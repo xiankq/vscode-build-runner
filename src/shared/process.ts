@@ -46,6 +46,10 @@ export class ProcessService {
       return;
     }
     const cwd = await this.getCwd(uri);
+
+    on?.('data', cwd);
+    on?.('data', commands.join(' '));
+
     const [command, ...args] = commands;
     const shell = os.platform() === 'win32';
     const process = cp.spawn(command, args, { cwd, shell });
@@ -53,7 +57,7 @@ export class ProcessService {
     process.stdout?.on('data', (v) => on?.('data', v));
     process.stdout?.on('error', (v) => on?.('error', v));
     process.stderr?.on('data', (v) => on?.('error', v));
-    process.stdout?.on('exit', (v) => {
+    process?.on('exit', (v) => {
       on?.('exit', v);
       const index = this.instances.findIndex((e) => e.unique === unique);
       if (index >= 0) {
