@@ -37,30 +37,33 @@ export const createProcess = async (
     cancellable: false,
     location: vsc.ProgressLocation.Window,
   });
-  await ProcessService.i.create(
-    unique,
-    uri,
-    [
-      'flutter',
-      'pub',
-      'run',
-      'build_runner',
-      type,
-      '--delete-conflicting-outputs',
-    ],
-    (type, value) => {
-      switch (type) {
-        case 'exit':
-          output.unActivate();
-          loading.hide();
-        default:
-          const message = `${value}`.split('\n').join(' ');
-          output.write(message);
-          loading.progress.report({ message });
-          const finished = message.includes('Succeeded after') ? true : false;
-          finished && loading.hide();
-          break;
-      }
+  const commands = [
+    'flutter',
+    'pub',
+    'run',
+    'build_runner',
+    type,
+    '--delete-conflicting-outputs',
+  ];
+
+  /**
+   * #3 添加可配置的fvm前缀
+   */
+  const fvm = vsc.workspace.getConfiguration().get('build_runner.fvm');
+  fvm && commands.unshift('fvm');
+
+  await ProcessService.i.create(unique, uri, commands, (type, value) => {
+    switch (type) {
+      case 'exit':
+        output.unActivate();
+        loading.hide();
+      default:
+        const message = `${value}`.split('\n').join(' ');
+        output.write(message);
+        loading.progress.report({ message });
+        const finished = message.includes('Succeeded after') ? true : false;
+        finished && loading.hide();
+        break;
     }
-  );
+  });
 };

@@ -3,7 +3,7 @@
   "displayName": "Dart build_runner",
   "description": "Dart build_runner tools in VSCode.",
   "publisher": "Kaiqun",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "engines": {
     "vscode": "^1.62.0"
   },
@@ -22,8 +22,6 @@
     "build runner",
     "generate",
     "generator"
-    
-    
   ],
   "activationEvents": [
     "onLanguage:dart",
@@ -37,6 +35,17 @@
   "icon": "static/icon.png",
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Dart build_runner",
+      "properties": {
+        "build_runner.fvm": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use FVM prefix"
+        }
+      }
+    },
     "commands": [
       {
         "category": "build-runner",
