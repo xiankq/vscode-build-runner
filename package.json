@@ -117,9 +117,9 @@
     "lint": "eslint src",
     "test": "vscode-test",
     "release": "bumpp -r",
-    "ci:build": "pnpm package && vsce package --no-dependencies && vsce publish --no-dependencies",
-    "ci:publish-vsce": "vsce package --no-dependencies",
-    "ci:publish-ovsx": "ovsx package --no-dependencies"
+    "ci:build": "pnpm package && vsce package --no-dependencies",
+    "ci:publish-vsce": "vsce publish --no-dependencies",
+    "ci:publish-ovsx": "ovsx publish --no-dependencies"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
