@@ -1,10 +1,10 @@
-import * as vsc from 'vscode';
-import { readYaml } from './shared/readYaml';
-import { scanFile } from './shared/scanFile';
-import { TreeViewItem, TreeViewProvider } from './shared/treeView';
-import { PubspecModel } from './types/pubspec';
+import * as vsc from "vscode";
+import { readYaml } from "./shared/readYaml";
+import { scanFile } from "./shared/scanFile";
+import { TreeViewItem, TreeViewProvider } from "./shared/treeView";
+import { PubspecModel } from "./types/pubspec";
 
-const globPattern = '**/pubspec.yaml';
+const globPattern = "**/pubspec.yaml";
 
 interface PubspecInfo {
   name: string;
@@ -41,7 +41,7 @@ const load = async () => {
 
   if (treeList.length) {
     treeViewDisposable ??= vsc.window.registerTreeDataProvider(
-      'build_runner_view',
+      "build_runner_view",
       TreeViewProvider.instance
     );
     TreeViewProvider.instance.treeList = treeList;
@@ -71,12 +71,12 @@ export const getProjectInfos = async () => {
           ...(obj?.dependencies ?? {}),
           ...(obj?.dev_dependencies ?? {}),
         };
-        if (Object.keys(dependencies).includes('build_runner')) {
+        if (Object.keys(dependencies).includes("build_runner")) {
           const relative = uri.fsPath
-            .replace(projectInfo?.workspace.uri.fsPath, '')
-            .replace(/pubspec\.yaml$/, '');
-          let name = relative + (obj?.name ?? 'unknown_name');
-          name = name.replace(/^\//, '');
+            .replace(projectInfo?.workspace.uri.fsPath, "")
+            .replace(/pubspec\.yaml$/, "");
+          let name = relative + (obj?.name ?? "unknown_name");
+          name = name.replace(/^\//, "");
           projectInfo.pubspecs.push({ name, uri });
         }
       });

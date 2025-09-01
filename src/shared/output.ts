@@ -1,4 +1,4 @@
-import * as vsc from 'vscode';
+import * as vsc from "vscode";
 
 export interface OutputInstance {
   unique: any;
@@ -58,7 +58,7 @@ export class OutputService {
     const terminal = vsc.window.createTerminal({
       name: title,
       pty,
-      iconPath: new vsc.ThemeIcon('tools'),
+      iconPath: new vsc.ThemeIcon("tools"),
     });
     const isShow = async () => {
       const id = await terminal.processId;
@@ -72,7 +72,7 @@ export class OutputService {
       show: terminal.show,
       hide: terminal.hide,
       isShow,
-      write: (value: string) => !invalid && writeEmitter.fire(value + '\r\n'),
+      write: (value: string) => !invalid && writeEmitter.fire(value + "\r\n"),
       activate: () => (invalid = false),
       unActivate: () => {
         invalid = true;
