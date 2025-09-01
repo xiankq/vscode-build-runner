@@ -1,0 +1,46 @@
+name: Publish Package
+
+permissions:
+  id-token: write
+  contents: write
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Use Node.js v22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org/
+          cache: pnpm
+
+      - run: pnpm install
+
+      - run: pnpm run build:ci
+
+      - run: npx changelogithub --no-group
+        continue-on-error: true
+        env:
+          VSCE_PAT: ${{secrets.VSCE_PAT}}
+
+      - run: pnpm run  ci:publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.VSCE_PAT}}
+          NPM_CONFIG_PROVENANCE: true
+          NODE_OPTIONS: --max-old-space-size=6144

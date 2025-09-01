@@ -5,7 +5,7 @@
   "publisher": "Kaiqun",
   "version": "2.1.0",
   "engines": {
-    "vscode": "^1.62.0"
+    "vscode": "^1.103.0"
   },
   "repository": "https://github.com/xiankaiqun/vscode-build-runner",
   "categories": [
@@ -33,7 +33,7 @@
     "Dart-Code.dart-code"
   ],
   "icon": "static/icon.png",
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
       "type": "object",
@@ -115,7 +115,9 @@
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "release": "bumpp -r",
+    "ci:publish": "pnpm package && vsce package --no-dependencies && vsce publish --no-dependencies"
   },
   "devDependencies": {
     "@types/vscode": "^1.103.0",
@@ -123,7 +125,9 @@
     "@types/node": "22.x",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
+    "@vscode/vsce": "^3.6.0",
     "eslint": "^9.32.0",
+    "bumpp": "^10.2.0",
     "esbuild": "^0.25.8",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.9.2",
