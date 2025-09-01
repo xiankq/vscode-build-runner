@@ -38,8 +38,7 @@ export const createProcess = async (
     location: vsc.ProgressLocation.Window,
   });
   const commands = [
-    'flutter',
-    'pub',
+    'dart',
     'run',
     'build_runner',
     type,
