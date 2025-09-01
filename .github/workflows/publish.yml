@@ -34,21 +34,20 @@ jobs:
 
       - run: npx changelogithub --no-group
         continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       - run: pnpm run ci:build
         env:
           VSCE_PAT: ${{secrets.VSCE_PAT}}
-          NPM_CONFIG_PROVENANCE: true
           NODE_OPTIONS: --max-old-space-size=6144
 
       - run: pnpm run ci:publish-vsce
         env:
           VSCE_PAT: ${{secrets.VSCE_PAT}}
-          NPM_CONFIG_PROVENANCE: true
           NODE_OPTIONS: --max-old-space-size=6144
 
       - run: pnpm run ci:publish-ovsx
         env:
           OVSX_PAT: ${{secrets.OVSX_PAT}}
-          NPM_CONFIG_PROVENANCE: true
           NODE_OPTIONS: --max-old-space-size=6144
