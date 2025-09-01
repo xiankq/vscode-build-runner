@@ -10,7 +10,7 @@ on:
       - v*
 
 jobs:
-  publish-npm:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,15 +32,23 @@ jobs:
 
       - run: pnpm install
 
-      - run: pnpm run build:ci
-
       - run: npx changelogithub --no-group
         continue-on-error: true
+
+      - run: pnpm run ci:build
         env:
           VSCE_PAT: ${{secrets.VSCE_PAT}}
+          NPM_CONFIG_PROVENANCE: true
+          NODE_OPTIONS: --max-old-space-size=6144
 
-      - run: pnpm run  ci:publish
+      - run: pnpm run ci:publish-vsce
         env:
-          NODE_AUTH_TOKEN: ${{secrets.VSCE_PAT}}
+          VSCE_PAT: ${{secrets.VSCE_PAT}}
+          NPM_CONFIG_PROVENANCE: true
+          NODE_OPTIONS: --max-old-space-size=6144
+
+      - run: pnpm run ci:publish-ovsx
+        env:
+          OVSX_PAT: ${{secrets.OVSX_PAT}}
           NPM_CONFIG_PROVENANCE: true
           NODE_OPTIONS: --max-old-space-size=6144
