@@ -145,7 +145,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "pidtree": "^0.5.0",
-    "yaml": "^1.10.2"
+    "pidtree": "^0.6.0",
+    "yaml": "^2.8.1"
   }
 }
