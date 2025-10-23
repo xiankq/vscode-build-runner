@@ -55,6 +55,9 @@ const load = async () => {
  * 获取所有有效的Pubspec.yaml树
  */
 export const getProjectInfos = async () => {
+  const config = vsc.workspace.getConfiguration('build_runner'); 
+  const excludePatterns: string[] = config.get('exclude', ['ios/.symlinks/plugins/']);
+
   const trees = await scanFile(globPattern);
   const projectInfos: ProjectInfo[] = [];
 
@@ -65,7 +68,22 @@ export const getProjectInfos = async () => {
         workspace,
         pubspecs: [],
       };
-      const _promises = fileUris.map(async (uri) => {
+
+      // Filter fileUris before processing
+      const filteredFileUris = fileUris.filter(uri => {
+        // Get the path of the pubspec.yaml relative to the workspace folder
+        const relativePath = uri.fsPath.replace(workspace.uri.fsPath, '');
+        
+        // Check if the relative path includes any of the exclude patterns
+        for (const pattern of excludePatterns) {
+          if (relativePath.includes(pattern)) {
+            return false; // Exclude this file
+          }
+        }
+        return true; // Include this file
+      });
+
+      const _promises = filteredFileUris.map(async (uri) => {
         const obj = (await readYaml(uri)) as PubspecModel | null;
         const dependencies = {
           ...(obj?.dependencies ?? {}),

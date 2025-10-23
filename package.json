@@ -43,6 +43,13 @@
           "type": "boolean",
           "default": false,
           "description": "Use FVM prefix"
+        },
+        "build_runner.exclude": {
+          "type": "array",
+          "default": [
+            "ios/.symlinks/plugins/"
+          ],
+          "description": "An array of path fragments to exclude from the Build Runner view. Any pubspec.yaml file whose relative path includes one of these strings will be hidden."
         }
       }
     },
@@ -138,7 +145,8 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "pidtree": "^0.6.0",
-    "yaml": "^2.8.1"
-  }
+    "pidtree": "^0.5.0",
+    "yaml": "^2.4.5"
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
