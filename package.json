@@ -47,7 +47,7 @@
         "build_runner.excludes": {
           "type": "array",
           "default": [],
-          "description": "Files excluded during scanning"
+          "description": "Files excluded during, e.g. **/example/** "
         }
       }
     },

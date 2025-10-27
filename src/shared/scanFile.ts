@@ -14,6 +14,7 @@ export const scanFile = async (pattern: string): Promise<ScanFileTree[]> => {
   const excludes: string[] | undefined = vsc.workspace
     .getConfiguration()
     .get("build_runner.excludes");
+
   const filter = createFilter("**/**", excludes);
   const workspaces = vsc.workspace.workspaceFolders ?? [];
   const promises = workspaces.map(async (workspace) => {
@@ -22,7 +23,7 @@ export const scanFile = async (pattern: string): Promise<ScanFileTree[]> => {
 
     return {
       workspace,
-      fileUris: fileUris.filter(filter),
+      fileUris: fileUris.filter((uri) => filter(uri.fsPath)),
     };
   });
   const tree = await Promise.all(promises);
