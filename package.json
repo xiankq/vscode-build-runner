@@ -43,6 +43,11 @@
           "type": "boolean",
           "default": false,
           "description": "Use FVM prefix"
+        },
+        "build_runner.excludes": {
+          "type": "array",
+          "default": [],
+          "description": "Files excluded during scanning"
         }
       }
     },
@@ -139,6 +144,7 @@
   },
   "dependencies": {
     "pidtree": "^0.6.0",
+    "@rollup/pluginutils": "^5.3.0",
     "yaml": "^2.8.1"
   }
 }

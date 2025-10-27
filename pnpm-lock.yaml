@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@rollup/pluginutils':
+        specifier: ^5.3.0
+        version: 5.3.0
       pidtree:
         specifier: ^0.6.0
         version: 0.6.0
@@ -479,6 +482,15 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
+
+  '@rollup/pluginutils@5.3.0':
+    resolution: {integrity: sha512-5EdhGZtnu3V88ces7s53hhfK5KSASnJZv8Lulpc04cWO3REESroJXg73DFsOmgbU2BhwV0E20bu2IDZb3VKW4Q==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
 
   '@secretlint/config-creator@10.2.2':
     resolution: {integrity: sha512-BynOBe7Hn3LJjb3CqCHZjeNB09s/vgf0baBaHVw67w7gHF0d25c3ZsZ5+vv8TgwSchRdUCRrbbcq5i2B1fJ2QQ==}
@@ -1204,6 +1216,9 @@ packages:
   estraverse@5.3.0:
     resolution: {integrity: sha512-MMdARuVEQziNTeJD8DgMqmhwR11BRQ/cBP+pLtYdSTnf3MIO8fFeiINEbX36ZdNlfU/7A9f3gUw49B3oQsvwBA==}
     engines: {node: '>=4.0'}
+
+  estree-walker@2.0.2:
+    resolution: {integrity: sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==}
 
   esutils@2.0.3:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
@@ -3037,6 +3052,12 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
+  '@rollup/pluginutils@5.3.0':
+    dependencies:
+      '@types/estree': 1.0.8
+      estree-walker: 2.0.2
+      picomatch: 4.0.3
+
   '@secretlint/config-creator@10.2.2':
     dependencies:
       '@secretlint/types': 10.2.2
@@ -4012,6 +4033,8 @@ snapshots:
       estraverse: 5.3.0
 
   estraverse@5.3.0: {}
+
+  estree-walker@2.0.2: {}
 
   esutils@2.0.3: {}
 
