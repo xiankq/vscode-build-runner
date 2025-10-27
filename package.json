@@ -3,7 +3,7 @@
   "displayName": "Dart build_runner",
   "description": "Dart build_runner tools in VSCode.",
   "publisher": "Kaiqun",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "engines": {
     "vscode": "^1.103.0"
   },
