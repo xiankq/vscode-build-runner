@@ -1,5 +1,5 @@
-import { createFilter } from "@rollup/pluginutils";
-import * as vsc from "vscode";
+import { createFilter } from '@rollup/pluginutils';
+import * as vsc from 'vscode';
 
 export interface ScanFileTree {
   workspace: vsc.WorkspaceFolder;
@@ -10,12 +10,12 @@ export interface ScanFileTree {
  * 扫描全部工作区中与 pattern 匹配的文件
  * @param pattern
  */
-export const scanFile = async (pattern: string): Promise<ScanFileTree[]> => {
+export async function scanFile(pattern: string): Promise<ScanFileTree[]> {
   const excludes: string[] | undefined = vsc.workspace
     .getConfiguration()
-    .get("build_runner.excludes");
+    .get('build_runner.excludes');
 
-  const filter = createFilter("**/**", excludes);
+  const filter = createFilter('**/**', excludes);
   const workspaces = vsc.workspace.workspaceFolders ?? [];
   const promises = workspaces.map(async (workspace) => {
     const relativePattern = new vsc.RelativePattern(workspace.uri, pattern);
@@ -23,9 +23,9 @@ export const scanFile = async (pattern: string): Promise<ScanFileTree[]> => {
 
     return {
       workspace,
-      fileUris: fileUris.filter((uri) => filter(uri.fsPath)),
+      fileUris: fileUris.filter(uri => filter(uri.fsPath)),
     };
   });
   const tree = await Promise.all(promises);
-  return tree.filter((e) => !!e.fileUris.length);
-};
+  return tree.filter(e => !!e.fileUris.length);
+}

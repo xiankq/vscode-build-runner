@@ -26,14 +26,14 @@
 插件自动读取带有`build_runner`依赖的`pubspec.yaml`文件
 
 ```yaml
-  #pubspec.yaml
-  #...
-  dev_dependencies
-   build_runner: any
-  #or
-  dependencies
-   build_runner: any
-  #...
+# pubspec.yaml
+# ...
+dev_dependencies:
+  build_runner: any
+  # or
+dependencies:
+  build_runner: any
+  # ...
 ```
 
 ## screenshot

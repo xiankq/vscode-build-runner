@@ -26,14 +26,14 @@ Inspired by the NPM script tool that comes with VSCode.
 The plugin automatically reads the `pubspec.yaml` file with `build_runner` dependencies.
 
 ```yaml
-  #pubspec.yaml
-  #...
-  dev_dependencies
-   build_runner: any
-  #or
-  dependencies
-   build_runner: any
-  #...
+# pubspec.yaml
+# ...
+dev_dependencies:
+  build_runner: any
+  # or
+dependencies:
+  build_runner: any
+  # ...
 ```
 
 ## screenshot

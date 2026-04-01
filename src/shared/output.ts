@@ -1,4 +1,4 @@
-import * as vsc from "vscode";
+import * as vsc from 'vscode';
 
 export interface OutputInstance {
   unique: any;
@@ -22,15 +22,15 @@ export class OutputService {
   private instances: OutputInstance[] = [];
 
   find(unique: any) {
-    return this.instances.find((e) => e.unique === unique);
+    return this.instances.find(e => e.unique === unique);
   }
 
   /**
    * 创建一个终端输出实例
-   * @param unique
-   * @param title
-   * @param onDispose
-   * @returns
+   * @param unique 唯一标识
+   * @param title 标题
+   * @param onDispose 销毁回调
+   * @returns OutputInstance
    */
   create(unique: any, title: string, onDispose: () => void): OutputInstance {
     const exist = this.find(unique);
@@ -39,15 +39,16 @@ export class OutputService {
       exist.show();
       return exist;
     }
-    //是否失效
+    // 是否失效
     let invalid = false;
+    let terminal: vsc.Terminal;
     const writeEmitter = new vsc.EventEmitter<string>();
     const pty: vsc.Pseudoterminal = {
       onDidWrite: writeEmitter.event,
       open() {},
-      handleInput: () => invalid && terminal.dispose(),
+      handleInput: () => invalid && terminal?.dispose(),
       close: () => {
-        const index = this.instances.findIndex((e) => e.unique === unique);
+        const index = this.instances.findIndex(e => e.unique === unique);
         onDispose?.();
         writeEmitter.dispose();
         if (index >= 0) {
@@ -55,10 +56,10 @@ export class OutputService {
         }
       },
     };
-    const terminal = vsc.window.createTerminal({
+    terminal = vsc.window.createTerminal({
       name: title,
       pty,
-      iconPath: new vsc.ThemeIcon("tools"),
+      iconPath: new vsc.ThemeIcon('tools'),
     });
     const isShow = async () => {
       const id = await terminal.processId;
@@ -72,12 +73,12 @@ export class OutputService {
       show: terminal.show,
       hide: terminal.hide,
       isShow,
-      write: (value: string) => !invalid && writeEmitter.fire(value + "\r\n"),
+      write: (value: string) => !invalid && writeEmitter.fire(`${value}\r\n`),
       activate: () => (invalid = false),
       unActivate: () => {
         invalid = true;
         writeEmitter.fire(
-          `\r\n\r\nTerminal will be reused by tasks, press any key to close it.\r\n`
+          `\r\n\r\nTerminal will be reused by tasks, press any key to close it.\r\n`,
         );
       },
     };

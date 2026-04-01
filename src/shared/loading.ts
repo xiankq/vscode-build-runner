@@ -1,4 +1,4 @@
-import * as vsc from "vscode";
+import * as vsc from 'vscode';
 
 /**
  * loading实例控制器
@@ -18,17 +18,18 @@ export class LoadingService {
   static get i() {
     return (this._i ??= new LoadingService());
   }
+
   private instances: LoadingInstance[] = [];
 
   /**
    * 新建一个loading实例
-   * @param unique
-   * @param options
-   * @returns
+   * @param unique 唯一标识
+   * @param options 进度选项
+   * @returns LoadingInstance
    */
   async create(
     unique: any,
-    options: vsc.ProgressOptions
+    options: vsc.ProgressOptions,
   ): Promise<LoadingInstance> {
     const exist = this.find(unique);
     if (exist) {
@@ -42,7 +43,7 @@ export class LoadingService {
           progress,
           hide: () => {
             _hide?.();
-            const index = this.instances.findIndex((e) => e.unique === unique);
+            const index = this.instances.findIndex(e => e.unique === unique);
             this.instances.splice(index, 1);
           },
         };
@@ -57,10 +58,10 @@ export class LoadingService {
 
   /**
    * 根据唯一值查询是否存在loading实例
-   * @param unique
-   * @returns
+   * @param unique 唯一标识
+   * @returns LoadingInstance | undefined
    */
   find(unique: any) {
-    return this.instances.find((e) => e, unique === unique);
+    return this.instances.find(e => e.unique === unique);
   }
 }

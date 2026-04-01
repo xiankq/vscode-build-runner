@@ -1,25 +1,22 @@
+import * as vsc from 'vscode';
 import { LoadingService } from './shared/loading';
 import { OutputService } from './shared/output';
 import { ProcessService } from './shared/process';
-import * as vsc from 'vscode';
 
 /**
  * 能力
- * @param args
- * @param type
- * @returns
+ * @param unique 唯一标识
+ * @param uri 运行路径
+ * @param title 标题
+ * @param type 类型
+ * @returns void
  */
-export const createProcess = async (
-  unique: string,
-  uri: vsc.Uri,
-  title: string,
-  type: 'watch' | 'build'
-) => {
-  if (ProcessService.i.find(unique)) {
+export async function createProcess(unique: string, uri: vsc.Uri, title: string, type: 'watch' | 'build') {
+  if (ProcessService.i.some(unique)) {
     const option = await vsc.window.showWarningMessage(
       `The task 'build_runner:(${title})' is already active.`,
       'Terminate',
-      'Restart'
+      'Restart',
     );
     if (option) {
       await ProcessService.i.kill(unique);
@@ -56,13 +53,15 @@ export const createProcess = async (
       case 'exit':
         output.unActivate();
         loading.hide();
-      default:
+        break;
+      default: {
         const message = `${value}`.split('\n').join(' ');
         output.write(message);
         loading.progress.report({ message });
-        const finished = message.includes('Succeeded after') ? true : false;
+        const finished = !!message.includes('Succeeded after');
         finished && loading.hide();
         break;
+      }
     }
   });
-};
+}

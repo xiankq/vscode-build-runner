@@ -1,16 +1,10 @@
 {
+  "publisher": "Kaiqun",
   "name": "build-runner",
   "displayName": "Dart build_runner",
-  "description": "Dart build_runner tools in VSCode.",
-  "publisher": "Kaiqun",
   "version": "2.2.1",
-  "engines": {
-    "vscode": "^1.103.0"
-  },
+  "description": "Dart build_runner tools in VSCode.",
   "repository": "https://github.com/xiankq/vscode-build-runner",
-  "categories": [
-    "Other"
-  ],
   "keywords": [
     "flutter",
     "dart",
@@ -23,17 +17,23 @@
     "generate",
     "generator"
   ],
+  "categories": [
+    "Other"
+  ],
+  "extensionDependencies": [
+    "Dart-Code.dart-code"
+  ],
+  "main": "./dist/extension.js",
+  "icon": "static/icon.png",
+  "engines": {
+    "vscode": "^1.110.0"
+  },
   "activationEvents": [
     "onLanguage:dart",
     "workspaceContains:pubspec.yaml",
     "workspaceContains:*/pubspec.yaml",
     "workspaceContains:*/*/pubspec.yaml"
   ],
-  "extensionDependencies": [
-    "Dart-Code.dart-code"
-  ],
-  "icon": "static/icon.png",
-  "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
       "type": "object",
@@ -119,32 +119,32 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "check-types": "tsc --noEmit",
-    "lint": "eslint src",
+    "lint": "eslint . --fix",
     "test": "vscode-test",
     "release": "bumpp -r",
     "ci:build": "pnpm package && vsce package --no-dependencies",
     "ci:publish-vsce": "vsce publish --no-dependencies",
     "ci:publish-ovsx": "ovsx publish --no-dependencies"
   },
+  "dependencies": {
+    "@rollup/pluginutils": "^5.3.0",
+    "pidtree": "^0.6.0",
+    "yaml": "^2.8.3"
+  },
   "devDependencies": {
+    "@antfu/eslint-config": "^7.7.3",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "@types/vscode": "^1.103.0",
-    "@typescript-eslint/eslint-plugin": "^8.39.0",
-    "@typescript-eslint/parser": "^8.39.0",
-    "@vscode/test-cli": "^0.0.11",
+    "@types/vscode": "^1.110.0",
+    "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.6.0",
-    "bumpp": "^10.2.0",
-    "esbuild": "^0.25.8",
-    "eslint": "^9.32.0",
+    "@vscode/vsce": "^3.7.1",
+    "bumpp": "^11.0.1",
+    "esbuild": "^0.27.4",
+    "eslint": "^10.1.0",
+    "eslint-plugin-format": "^2.0.1",
     "npm-run-all": "^4.1.5",
-    "ovsx": "^0.10.5",
-    "typescript": "^5.9.2"
-  },
-  "dependencies": {
-    "pidtree": "^0.6.0",
-    "@rollup/pluginutils": "^5.3.0",
-    "yaml": "^2.8.1"
+    "ovsx": "^0.10.10",
+    "typescript": "^6.0.2"
   }
 }

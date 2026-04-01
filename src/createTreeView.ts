@@ -1,10 +1,12 @@
-import * as vsc from "vscode";
-import { readYaml } from "./shared/readYaml";
-import { scanFile } from "./shared/scanFile";
-import { TreeViewItem, TreeViewProvider } from "./shared/treeView";
-import { PubspecModel } from "./types/pubspec";
+import type { PubspecModel } from './types/pubspec';
+import * as vsc from 'vscode';
+import { readYaml } from './shared/readYaml';
+import { scanFile } from './shared/scanFile';
+import { TreeViewItem, TreeViewProvider } from './shared/treeView';
 
-const globPattern = "**/pubspec.yaml";
+const globPattern = '**/pubspec.yaml';
+const pubspecYamlRegex = /pubspec\.yaml$/;
+const leadingSlashRegex = /^\//;
 
 interface PubspecInfo {
   name: string;
@@ -17,15 +19,15 @@ interface ProjectInfo {
 
 let treeViewDisposable: vsc.Disposable | undefined;
 
-export const createTreeView = () => {
+export function createTreeView() {
   load();
   const watcher = vsc.workspace.createFileSystemWatcher(globPattern);
   watcher.onDidCreate(() => load());
   watcher.onDidChange(() => load());
   watcher.onDidDelete(() => load());
-};
+}
 
-const load = async () => {
+async function load() {
   const infos = await getProjectInfos();
   const treeList = infos.map(({ workspace, pubspecs }) => {
     return new TreeViewItem(
@@ -34,27 +36,27 @@ const load = async () => {
       vsc.FileType.Directory,
       pubspecs.map(({ name, uri }) => {
         return new TreeViewItem(name, uri, vsc.FileType.File);
-      })
+      }),
     );
   });
-  console.log(treeList);
 
   if (treeList.length) {
     treeViewDisposable ??= vsc.window.registerTreeDataProvider(
-      "build_runner_view",
-      TreeViewProvider.instance
+      'build_runner_view',
+      TreeViewProvider.instance,
     );
     TreeViewProvider.instance.treeList = treeList;
     TreeViewProvider.instance.refresh();
-  } else {
+  }
+  else {
     treeViewDisposable?.dispose?.();
   }
-};
+}
 
 /**
  * 获取所有有效的Pubspec.yaml树
  */
-export const getProjectInfos = async () => {
+export async function getProjectInfos() {
   const trees = await scanFile(globPattern);
   const projectInfos: ProjectInfo[] = [];
 
@@ -71,12 +73,12 @@ export const getProjectInfos = async () => {
           ...(obj?.dependencies ?? {}),
           ...(obj?.dev_dependencies ?? {}),
         };
-        if (Object.keys(dependencies).includes("build_runner")) {
+        if (Object.keys(dependencies).includes('build_runner')) {
           const relative = uri.fsPath
-            .replace(projectInfo?.workspace.uri.fsPath, "")
-            .replace(/pubspec\.yaml$/, "");
-          let name = relative + (obj?.name ?? "unknown_name");
-          name = name.replace(/^\//, "");
+            .replace(projectInfo?.workspace.uri.fsPath, '')
+            .replace(pubspecYamlRegex, '');
+          let name = relative + (obj?.name ?? 'unknown_name');
+          name = name.replace(leadingSlashRegex, '');
           projectInfo.pubspecs.push({ name, uri });
         }
       });
@@ -86,7 +88,7 @@ export const getProjectInfos = async () => {
       }
     });
   await Promise.all(promises);
-  //排序
+  // 排序
   projectInfos.sort((a, b) => {
     const $a = a.workspace.name;
     const $b = b.workspace.name;
@@ -100,4 +102,4 @@ export const getProjectInfos = async () => {
     });
   }
   return projectInfos;
-};
+}

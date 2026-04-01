@@ -1,4 +1,4 @@
-import * as vsc from "vscode";
+import * as vsc from 'vscode';
 
 type EventEmitterTreeItem = TreeViewItem | undefined | void;
 
@@ -30,28 +30,29 @@ export class TreeViewItem extends vsc.TreeItem {
     readonly title: string,
     readonly resourceUri: vsc.Uri,
     readonly fileType: vsc.FileType,
-    readonly children?: TreeViewItem[]
+    readonly children?: TreeViewItem[],
   ) {
     super(
       title,
       fileType === vsc.FileType.Directory
         ? vsc.TreeItemCollapsibleState.Expanded
-        : undefined
+        : undefined,
     );
-    this.contextValue =
-      this.fileType === vsc.FileType.Directory ? "dir" : "file";
-    //点击树图项时的命令
-    this.command =
-      this.fileType === vsc.FileType.File
+    this.contextValue
+      = this.fileType === vsc.FileType.Directory ? 'dir' : 'file';
+    // 点击树图项时的命令
+    this.command
+      = this.fileType === vsc.FileType.File
         ? {
-            title: "Open file",
-            command: "vscode.open",
+            title: 'Open file',
+            command: 'vscode.open',
             tooltip: this.resourceUri.fsPath,
             arguments: [this.resourceUri],
           }
         : undefined;
     this.tooltip = `${this.resourceUri.path}`;
   }
+
   get unique() {
     return this.resourceUri.fsPath;
   }
