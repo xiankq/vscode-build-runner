@@ -175,11 +175,7 @@
     "pre-commit": "pnpm lint-staged"
   },
   "lint-staged": {
-    "*.{ts,js}": [
-      "eslint --fix"
-    ],
-    "*.json": [
-      "eslint --fix"
-    ]
+    "*": "eslint --fix",
+    "*.ts": "tsc --noEmit --pretty false"
   }
 }
