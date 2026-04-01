@@ -37,17 +37,25 @@
   "contributes": {
     "configuration": {
       "type": "object",
-      "title": "Dart build_runner",
+      "title": "Build Runner",
       "properties": {
         "build_runner.fvm": {
           "type": "boolean",
           "default": false,
-          "description": "Use FVM prefix"
+          "description": "Use FVM to run build_runner"
         },
         "build_runner.excludes": {
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "default": [],
-          "description": "Files excluded during, e.g. **/example/** "
+          "description": "Glob patterns to exclude from scanning"
+        },
+        "build_runner.args": {
+          "type": "string",
+          "default": "--delete-conflicting-outputs",
+          "description": "Additional arguments passed to build_runner"
         }
       }
     },
@@ -62,13 +70,19 @@
         "category": "build-runner",
         "command": "build_runner.watch",
         "title": "watch",
-        "icon": "$(server)"
+        "icon": "$(sync)"
       },
       {
         "category": "build-runner",
         "command": "build_runner.quit",
         "title": "quit",
         "icon": "$(debug-stop)"
+      },
+      {
+        "category": "build-runner",
+        "command": "build_runner.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
       }
     ],
     "menus": {
@@ -97,13 +111,22 @@
           "when": "view == build_runner_view && viewItem == file",
           "group": "inline"
         }
+      ],
+      "view/title": [
+        {
+          "command": "build_runner.refresh",
+          "when": "view == build_runner_view",
+          "group": "navigation"
+        }
       ]
     },
     "views": {
       "explorer": [
         {
           "id": "build_runner_view",
-          "name": "BUILD RUNNER"
+          "name": "BUILD RUNNER",
+          "when": "buildRunner.hasItems",
+          "icon": "./static/icon.png"
         }
       ]
     }
@@ -128,7 +151,6 @@
   },
   "dependencies": {
     "@rollup/pluginutils": "^5.3.0",
-    "pidtree": "^0.6.0",
     "yaml": "^2.8.3"
   },
   "devDependencies": {
@@ -143,8 +165,21 @@
     "esbuild": "^0.27.4",
     "eslint": "^10.1.0",
     "eslint-plugin-format": "^2.0.1",
+    "lint-staged": "^16.4.0",
     "npm-run-all": "^4.1.5",
     "ovsx": "^0.10.10",
+    "simple-git-hooks": "^2.13.1",
     "typescript": "^6.0.2"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged"
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "eslint --fix"
+    ],
+    "*.json": [
+      "eslint --fix"
+    ]
   }
 }

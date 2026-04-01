@@ -9,11 +9,20 @@ Inspired by the NPM script tool that comes with VSCode.
 ## Features
 
 - High-quality experience almost the same as `VSCode NPM script`.
-- Support build_runner operation of multiple independent packages under multiple workspaces.
+- Support build_runner operation of multiple independent packages under multiple workspaces (monorepo).
 - Automatically identify Packages with build_runner dependencies in the workspace.
-- Log printing is completely independent when running multiple packages.
+- Use VSCode Task API for native terminal experience with control buttons (stop, restart).
 - Support build_runner watch/build at the same time.
-- The plugin default `--delete-conflicting-outputs` configuration starts build_runner.
+- Auto-hide tree view when no projects with build_runner are detected.
+- Refresh button to rescan workspace for build_runner projects.
+
+## Configuration
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `build_runner.fvm` | boolean | `false` | Use FVM to run build_runner |
+| `build_runner.args` | string | `--delete-conflicting-outputs` | Additional arguments passed to build_runner |
+| `build_runner.excludes` | array | `[]` | Glob patterns to exclude from scanning |
 
 ## Usage
 
