@@ -3,7 +3,8 @@
   "name": "build-runner",
   "displayName": "Dart build_runner",
   "version": "2.2.1",
-  "description": "Dart build_runner tools in VSCode.",
+  "description": "A VS Code extension to quickly run Flutter/Dart build_runner.",
+  "license": "MIT",
   "repository": "https://github.com/xiankq/vscode-build-runner",
   "keywords": [
     "flutter",
