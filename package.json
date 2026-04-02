@@ -31,9 +31,7 @@
   },
   "activationEvents": [
     "onLanguage:dart",
-    "workspaceContains:pubspec.yaml",
-    "workspaceContains:*/pubspec.yaml",
-    "workspaceContains:*/*/pubspec.yaml"
+    "workspaceContains:**/pubspec.yaml"
   ],
   "contributes": {
     "configuration": {
@@ -75,12 +73,6 @@
       },
       {
         "category": "build-runner",
-        "command": "build_runner.quit",
-        "title": "quit",
-        "icon": "$(debug-stop)"
-      },
-      {
-        "category": "build-runner",
         "command": "build_runner.refresh",
         "title": "Refresh",
         "icon": "$(refresh)"
@@ -94,10 +86,6 @@
         },
         {
           "command": "build_runner.build",
-          "when": "false"
-        },
-        {
-          "command": "build_runner.quit",
           "when": "false"
         }
       ],
@@ -143,7 +131,7 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "check-types": "tsc --noEmit",
-    "lint": "eslint . --fix",
+    "lint": "eslint --fix",
     "test": "vscode-test",
     "release": "bumpp -r",
     "ci:build": "pnpm package && vsce package --no-dependencies",
@@ -173,10 +161,6 @@
     "typescript": "^6.0.2"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm lint-staged"
-  },
-  "lint-staged": {
-    "*": "eslint --fix",
-    "*.ts": "tsc --noEmit --pretty false"
+    "pre-commit": "pnpm lint-staged --concurrent false"
   }
 }

@@ -1,12 +1,18 @@
 import * as vsc from 'vscode';
 import * as yaml from 'yaml';
 
-export async function readYaml(uri: vsc.Uri): Promise<Record<string, unknown> | null> {
-  const uint8Array = await vsc.workspace.fs.readFile(uri);
+const textDecoder = new TextDecoder();
+
+export function parseYamlBytes(bytes: Uint8Array): Record<string, unknown> | null {
   try {
-    return yaml.parse(uint8Array.toString()) as Record<string, unknown>;
+    return yaml.parse(textDecoder.decode(bytes)) as Record<string, unknown>;
   }
   catch {
     return null;
   }
+}
+
+export async function readYaml(uri: vsc.Uri): Promise<Record<string, unknown> | null> {
+  const bytes = await vsc.workspace.fs.readFile(uri);
+  return parseYamlBytes(bytes);
 }

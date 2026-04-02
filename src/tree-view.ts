@@ -17,6 +17,19 @@ interface FileCacheEntry {
   pubspec: PubspecYaml | null;
 }
 
+export class LatestRequestController {
+  private latestRequestId = 0;
+
+  beginRequest(): number {
+    this.latestRequestId += 1;
+    return this.latestRequestId;
+  }
+
+  isLatestRequest(requestId: number): boolean {
+    return requestId === this.latestRequestId;
+  }
+}
+
 export class ProjectTreeItem extends vsc.TreeItem {
   constructor(
     readonly title: string,
@@ -73,6 +86,13 @@ let treeViewDisposable: vsc.Disposable | undefined;
 let watcher: vsc.FileSystemWatcher | undefined;
 const provider = new TreeProvider();
 const yamlCache = new Map<string, FileCacheEntry>();
+const loadRequestController = new LatestRequestController();
+
+function triggerTreeDataLoad(): void {
+  void loadTreeData().catch((error) => {
+    console.error('Failed to load build_runner tree data.', error);
+  });
+}
 
 export function registerTreeView(context: vsc.ExtensionContext): void {
   treeViewDisposable = vsc.window.registerTreeDataProvider('build_runner_view', provider);
@@ -84,21 +104,25 @@ export function registerTreeView(context: vsc.ExtensionContext): void {
   let debounceTimer: NodeJS.Timeout | undefined;
   const debouncedLoad = () => {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(loadTreeData, 300);
+    debounceTimer = setTimeout(() => {
+      triggerTreeDataLoad();
+    }, 300);
   };
   watcher.onDidCreate(debouncedLoad);
   watcher.onDidChange(debouncedLoad);
   watcher.onDidDelete(debouncedLoad);
 
-  loadTreeData();
+  context.subscriptions.push({ dispose: () => clearTimeout(debounceTimer) });
+
+  triggerTreeDataLoad();
 }
 
 export function refreshTreeView(): void {
   yamlCache.clear();
-  loadTreeData();
+  triggerTreeDataLoad();
 }
 
-async function readYamlWithCache(uri: vsc.Uri): Promise<PubspecYaml | null> {
+async function readYamlWithCache(uri: vsc.Uri, requestId: number): Promise<PubspecYaml | null> {
   const key = uri.toString();
   try {
     const stat = await vsc.workspace.fs.stat(uri);
@@ -107,23 +131,31 @@ async function readYamlWithCache(uri: vsc.Uri): Promise<PubspecYaml | null> {
       return cached.pubspec;
     }
     const pubspec = await readYaml(uri) as PubspecYaml | null;
-    yamlCache.set(key, { mtime: stat.mtime, pubspec });
+
+    if (loadRequestController.isLatestRequest(requestId)) {
+      yamlCache.set(key, { mtime: stat.mtime, pubspec });
+    }
+
     return pubspec;
   }
   catch {
-    yamlCache.delete(key);
+    if (loadRequestController.isLatestRequest(requestId)) {
+      yamlCache.delete(key);
+    }
+
     return null;
   }
 }
 
 async function loadTreeData(): Promise<void> {
+  const requestId = loadRequestController.beginRequest();
   const results = await scanWorkspace(GLOB_PATTERN);
 
   const items: ProjectTreeItem[] = [];
   for (const { workspace, fileUris } of results) {
     const pubspecs = await Promise.all(
       fileUris.map(async (uri) => {
-        const pubspec = await readYamlWithCache(uri);
+        const pubspec = await readYamlWithCache(uri, requestId);
         const deps = pubspec?.dependencies ?? {};
         const devDeps = pubspec?.dev_dependencies ?? {};
         if (!('build_runner' in deps) && !('build_runner' in devDeps))
@@ -142,9 +174,13 @@ async function loadTreeData(): Promise<void> {
   }
 
   items.sort((a, b) => a.title.localeCompare(b.title));
+
+  if (!loadRequestController.isLatestRequest(requestId))
+    return;
+
   provider.setItems(items);
 
   const hasItems = items.length > 0;
-  vsc.commands.executeCommand('setContext', 'buildRunner.hasItems', hasItems);
+  await vsc.commands.executeCommand('setContext', 'buildRunner.hasItems', hasItems);
   provider.refresh();
 }

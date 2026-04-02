@@ -34,7 +34,11 @@ export async function createTask(unique: string, uri: vsc.Uri, title: string, ty
   const execution = await vsc.tasks.executeTask(task);
 
   const disposeEndListener = vsc.tasks.onDidEndTaskProcess((e) => {
-    if (e.execution === execution && e.exitCode !== 0) {
+    if (e.execution !== execution) {
+      return;
+    }
+
+    if (e.exitCode) {
       vsc.window.showErrorMessage(`Task '${task.name}' failed with exit code ${e.exitCode}.`);
     }
     disposeEndListener.dispose();
