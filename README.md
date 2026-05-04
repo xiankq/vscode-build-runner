@@ -1,20 +1,24 @@
-# A VS Code extension to quickly run Flutter/Dart build_runner
+# Dart build_runner
 
-English | [简体中文](https://github.com/xiankaiqun/vscode-build-runner/blob/main/README_zh.md)
+English | [简体中文](https://github.com/xiankq/vscode-build-runner/blob/main/README_zh.md)
 
-## Inspiration
+[![GitHub](https://img.shields.io/github/stars/xiankq/vscode-build-runner?style=flat&logo=github)](https://github.com/xiankq/vscode-build-runner)
+[![VS Code](https://badgen.citizen4.eu/vs-marketplace/i/Kaiqun.build-runner?label=VS%20Code&color=007ACC)](https://marketplace.visualstudio.com/items?itemName=Kaiqun.build-runner)
+[![Open VSX](https://img.shields.io/open-vsx/dt/Kaiqun/build-runner?style=flat&logo=openvsx&label=Open%20VSX&color=E98300)](https://open-vsx.org/extension/Kaiqun/build-runner)
 
-Inspired by the NPM Scripts tool that comes with VS Code.
+A VS Code extension to quickly run Flutter/Dart build_runner.
+
+![screenshot](https://github.com/xiankq/vscode-build-runner/raw/main/static/screenshot.png)
 
 ## Features
 
-- Experience almost identical to the built-in `NPM Scripts` view.
-- Supports running build_runner for multiple independent packages across multiple workspaces (monorepo).
-- Automatically detects packages with build_runner dependencies in the workspace.
-- Uses the VS Code Task API for a native terminal experience with control buttons (stop, restart).
-- Supports running both build_runner watch and build simultaneously.
-- Auto-hides the tree view when no build_runner projects are detected.
-- Refresh button to rescan the workspace for build_runner projects.
+- **Native Experience**: Works like the built-in NPM Scripts panel, right inside the Explorer sidebar.
+- **Auto Discovery**: Automatically finds all packages that depend on `build_runner`.
+- **Dart Workspace Support**: Automatically detects workspace roots and runs with `--workspace` flag for unified code generation. Requires build_runner >= 2.11.0.
+- **Task Integration**: Uses VS Code's Task API so you get native terminal controls (stop, restart) and clear output.
+- **Watch & Build**: Run `watch` or `build` independently and simultaneously for any package.
+- **Smart Visibility**: The tree view only appears when build_runner projects are present.
+- **One-Click Refresh**: Rescan the workspace anytime to pick up new or removed packages.
 
 ## Configuration
 
@@ -26,25 +30,47 @@ Inspired by the NPM Scripts tool that comes with VS Code.
 
 ## Usage
 
-- Ensure that the Flutter/Dart environment variables are correctly configured.
-- Refer to the [build_runner](https://github.com/dart-lang/build/tree/master/build_runner) documentation. If necessary, configure `build.yaml` for each package to exclude unnecessary files and improve compilation speed.
-- Closing the corresponding terminal will stop the build_runner process.
+1. Open a Flutter or Dart project in VS Code.
+2. The **BUILD RUNNER** panel appears in the Explorer sidebar when eligible packages are found.
+3. Hover over any package and click the build or watch icon.
+4. For Dart workspaces, the root package is labeled with `(workspace)` and runs with the `--workspace` flag automatically.
+
+> Make sure Flutter / Dart environment variables are configured correctly. See the [build_runner documentation](https://github.com/dart-lang/build/tree/master/build_runner) for details. You can also create a `build.yaml` in each package to exclude unnecessary files and speed up compilation.
 
 ## Requirements
 
-The extension automatically detects `pubspec.yaml` files that include build_runner as a dependency.
+- Flutter / Dart SDK installed and available in your PATH.
+- The [Dart extension](https://marketplace.visualstudio.com/items?itemName=Dart-Code.dart-code) for VS Code.
+- Packages must declare `build_runner` as a dependency or dev dependency.
 
 ```yaml
 # pubspec.yaml
-# ...
 dev_dependencies:
   build_runner: any
-  # or
-dependencies:
-  build_runner: any
-  # ...
 ```
 
-## Screenshot
+### Enabling Workspace Support
 
-![screenshot.png](https://ftp.bmp.ovh/imgs/2021/04/070cb16d017ee66c.png)
+If you want to use Dart workspace support, define the workspace in your root `pubspec.yaml`:
+
+```yaml
+# pubspec.yaml
+name: my_workspace
+workspace:
+  - packages/core
+  - packages/ui
+
+dev_dependencies:
+  build_runner: ^2.11.0
+```
+
+Sub-packages should reference the workspace:
+
+```yaml
+# packages/core/pubspec.yaml
+name: core
+resolution: workspace
+
+dev_dependencies:
+  build_runner: any
+```

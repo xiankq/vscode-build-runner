@@ -1,20 +1,24 @@
-# 快速运行 Flutter/Dart build_runner 的 VS Code 扩展
+# Dart build_runner
 
-[English](https://github.com/xiankaiqun/vscode-build-runner/blob/main/README.md) | 简体中文
+[English](https://github.com/xiankq/vscode-build-runner/blob/main/README.md) | 简体中文
 
-## 灵感来源
+[![GitHub](https://img.shields.io/github/stars/xiankq/vscode-build-runner?style=flat&logo=github)](https://github.com/xiankq/vscode-build-runner)
+[![VS Code](https://badgen.citizen4.eu/vs-marketplace/i/Kaiqun.build-runner?label=VS%20Code&color=007ACC)](https://marketplace.visualstudio.com/items?itemName=Kaiqun.build-runner)
+[![Open VSX](https://img.shields.io/open-vsx/dt/Kaiqun/build-runner?style=flat&logo=openvsx&label=Open%20VSX&color=E98300)](https://open-vsx.org/extension/Kaiqun/build-runner)
 
-灵感来源于 VS Code 内置的 NPM Scripts 工具。
+快速运行 Flutter/Dart build_runner 的 VS Code 扩展。
+
+![screenshot](https://github.com/xiankq/vscode-build-runner/raw/main/static/screenshot.png)
 
 ## 功能特性
 
-- 与内置的 `NPM Scripts` 视图几乎一致的体验
-- 支持跨多个工作区运行多个独立包的 build_runner（monorepo）
-- 自动检测工作区中带有 build_runner 依赖的包
-- 使用 VS Code Task API 提供原生终端体验与控制按钮（停止、重启）
-- 同时支持 build_runner watch 和 build
-- 未检测到 build_runner 项目时自动隐藏视图
-- 刷新按钮可重新扫描工作区中的 build_runner 项目
+- **原生体验**：与内置的 NPM Scripts 面板类似，直接集成在资源管理器侧边栏。
+- **自动发现**：自动查找所有依赖了 `build_runner` 的包。
+- **Dart Workspace 支持**：自动识别 workspace 根目录，使用 `--workspace` 标志统一执行代码生成任务。需要 build_runner >= 2.11.0。
+- **任务集成**：使用 VS Code 的 Task API，提供原生终端控制（停止、重启）和清晰的输出。
+- **Watch 与 Build**：可以为任意包独立或同时运行 `watch` 和 `build`。
+- **智能显隐**：仅当存在 build_runner 项目时才显示树视图。
+- **一键刷新**：随时重新扫描工作区，以识别新增或移除的包。
 
 ## 配置项
 
@@ -26,25 +30,47 @@
 
 ## 使用方法
 
-- 确保已正确配置 Flutter/Dart 的环境变量
-- 参考 [build_runner](https://github.com/dart-lang/build/tree/master/build_runner) 文档。如有需要，为每个包配置 `build.yaml` 以排除不必要的文件，提升编译速度
-- 关闭对应的终端会停止 build_runner 进程
+1. 在 VS Code 中打开 Flutter 或 Dart 项目。
+2. 当检测到符合条件的包时，资源管理器侧边栏会显示 **BUILD RUNNER** 面板。
+3. 将鼠标悬停在任意包上，点击 build 或 watch 图标。
+4. 对于 Dart workspace，根包会标注为 `(workspace)`，并自动使用 `--workspace` 标志运行。
 
-## 依赖识别
+> 确保已正确配置 Flutter / Dart 的环境变量。参考 [build_runner 文档](https://github.com/dart-lang/build/tree/master/build_runner) 了解更多详情。如有需要，可为每个包配置 `build.yaml` 以排除不必要的文件，提升编译速度。
 
-扩展会自动检测包含 build_runner 依赖的 `pubspec.yaml` 文件
+## 环境要求
+
+- 已安装 Flutter / Dart SDK，并可在 PATH 中使用。
+- VS Code 的 [Dart 扩展](https://marketplace.visualstudio.com/items?itemName=Dart-Code.dart-code)。
+- 包必须在依赖或开发依赖中声明 `build_runner`。
 
 ```yaml
 # pubspec.yaml
-# ...
 dev_dependencies:
   build_runner: any
-  # 或
-dependencies:
-  build_runner: any
-  # ...
 ```
 
-## 截图
+### 启用 Workspace 支持
 
-![screenshot.png](https://ftp.bmp.ovh/imgs/2021/04/070cb16d017ee66c.png)
+如需使用 Dart workspace 功能，在根目录 `pubspec.yaml` 中定义 workspace：
+
+```yaml
+# pubspec.yaml
+name: my_workspace
+workspace:
+  - packages/core
+  - packages/ui
+
+dev_dependencies:
+  build_runner: ^2.11.0
+```
+
+子包需要引用 workspace：
+
+```yaml
+# packages/core/pubspec.yaml
+name: core
+resolution: workspace
+
+dev_dependencies:
+  build_runner: any
+```
