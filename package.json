@@ -2,7 +2,7 @@
   "publisher": "Kaiqun",
   "name": "build-runner",
   "displayName": "Dart build_runner",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "A VS Code extension to quickly run Flutter/Dart build_runner.",
   "license": "MIT",
   "repository": "https://github.com/xiankq/vscode-build-runner",
