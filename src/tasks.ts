@@ -1,5 +1,5 @@
 import * as vsc from 'vscode';
-import { readYaml } from './lib/yaml-reader';
+import { readYaml } from './read-yaml';
 
 export async function createTask(unique: string, uri: vsc.Uri, title: string, type: 'watch' | 'build', isWorkspace: boolean = false) {
   const cwd = uri.fsPath.endsWith('.yaml') || uri.fsPath.endsWith('.yml')

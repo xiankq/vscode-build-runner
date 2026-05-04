@@ -1,6 +1,6 @@
 import * as vsc from 'vscode';
-import { scanWorkspace } from './lib/workspace-scanner';
-import { readYaml } from './lib/yaml-reader';
+import { readYaml } from './read-yaml';
+import { scanWorkspace } from './scan-workspace';
 
 const GLOB_PATTERN = '**/pubspec.yaml';
 const PUBSPEC_YAML_REGEX = /pubspec\.yaml$/;

@@ -1,6 +1,6 @@
 import * as assert from 'node:assert';
 import { Buffer } from 'node:buffer';
-import { parseYamlBytes } from '../src/lib/yaml-reader';
+import { parseYamlBytes } from '../src/read-yaml';
 
 suite('YAML Reader', () => {
   it('parses UTF-8 bytes from a plain Uint8Array', () => {
