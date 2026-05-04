@@ -7,11 +7,11 @@ export async function activate(context: vsc.ExtensionContext) {
   context.subscriptions.push(
     vsc.commands.registerCommand(
       'build_runner.watch',
-      (item: ProjectTreeItem) => createTask(item.uniqueWatch, item.resourceUri, item.title, 'watch'),
+      (item: ProjectTreeItem) => createTask(item.uniqueWatch, item.resourceUri, item.title, 'watch', item.workspace),
     ),
     vsc.commands.registerCommand(
       'build_runner.build',
-      (item: ProjectTreeItem) => createTask(item.uniqueBuild, item.resourceUri, item.title, 'build'),
+      (item: ProjectTreeItem) => createTask(item.uniqueBuild, item.resourceUri, item.title, 'build', item.workspace),
     ),
     vsc.commands.registerCommand(
       'build_runner.refresh',

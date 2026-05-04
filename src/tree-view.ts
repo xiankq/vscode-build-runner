@@ -10,6 +10,8 @@ interface PubspecYaml {
   name?: unknown;
   dependencies?: Record<string, unknown>;
   dev_dependencies?: Record<string, unknown>;
+  workspace?: unknown[];
+  resolution?: unknown;
 }
 
 interface FileCacheEntry {
@@ -34,6 +36,7 @@ export class ProjectTreeItem extends vsc.TreeItem {
   constructor(
     readonly title: string,
     readonly resourceUri: vsc.Uri,
+    readonly workspace: boolean = false,
   ) {
     super(title, vsc.TreeItemCollapsibleState.None);
     this.contextValue = 'file';
@@ -151,7 +154,7 @@ async function loadTreeData(): Promise<void> {
   const requestId = loadRequestController.beginRequest();
   const results = await scanWorkspace(GLOB_PATTERN);
 
-  const items: ProjectTreeItem[] = [];
+  const workspaceItems = new Map<string, ProjectTreeItem[]>();
   for (const { workspace, fileUris } of results) {
     const pubspecs = await Promise.all(
       fileUris.map(async (uri) => {
@@ -165,15 +168,24 @@ async function loadTreeData(): Promise<void> {
           .replace(workspace.uri.fsPath, '')
           .replace(PUBSPEC_YAML_REGEX, '')
           .replace(LEADING_SLASH_REGEX, '');
-        const name = relative + ((typeof pubspec?.name === 'string') ? pubspec.name : 'unknown_name');
-        return new ProjectTreeItem(name, uri);
+        const packageName = (typeof pubspec?.name === 'string') ? pubspec.name : 'unknown_name';
+        const name = relative + packageName;
+        const isDartWorkspace = Array.isArray(pubspec?.workspace);
+        const displayName = isDartWorkspace ? `${name} (workspace)` : name;
+        return new ProjectTreeItem(displayName, uri, isDartWorkspace);
       }),
     );
 
-    items.push(...pubspecs.filter((item): item is ProjectTreeItem => item !== null));
+    const items = pubspecs.filter((item): item is ProjectTreeItem => item !== null);
+    items.sort((a, b) => a.title.localeCompare(b.title));
+    workspaceItems.set(workspace.name, items);
   }
 
-  items.sort((a, b) => a.title.localeCompare(b.title));
+  const sortedWorkspaceNames = Array.from(workspaceItems.keys()).sort((a, b) => a.localeCompare(b));
+  const items: ProjectTreeItem[] = [];
+  for (const workspaceName of sortedWorkspaceNames) {
+    items.push(...workspaceItems.get(workspaceName)!);
+  }
 
   if (!loadRequestController.isLatestRequest(requestId))
     return;
