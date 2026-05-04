@@ -1,0 +1,14 @@
+name: workspace_demo
+description: A Dart workspace demo for build_runner extension
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+workspace:
+  - packages/core
+  - packages/ui
+
+# Optional: install build_runner at root for unified execution
+dev_dependencies:
+  build_runner: ^2.13.1
