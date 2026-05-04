@@ -20,7 +20,7 @@ export async function createTask(unique: string, uri: vsc.Uri, title: string, ty
   const task = new vsc.Task(
     { type: 'build_runner', unique },
     vsc.TaskScope.Workspace,
-    `${type}: ${name}`,
+    `${type}: ${name}${isWorkspace ? ' (workspace)' : ''}`,
     'build_runner',
     new vsc.ShellExecution(command, { cwd }),
   );
